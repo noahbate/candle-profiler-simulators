@@ -1,0 +1,50 @@
+/* Profiler Simulators — shared styles */
+:root {
+  --bg: #1a1a2e; --card: #16213e; --text: #e2e8f0; --dim: #6b7280;
+  --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --accent: #22d3ee;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
+header { padding: 24px 32px; border-bottom: 1px solid #ffffff14; }
+h1 { margin: 0; font-size: 22px; }
+.dim { color: var(--dim); font-weight: 400; }
+main { padding: 24px 32px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+/* catalog cards */
+a.card { display: block; background: var(--card); border: 1px solid #ffffff12; border-radius: 10px; padding: 16px 18px; text-decoration: none; color: var(--text); transition: border-color .15s; }
+a.card:hover { border-color: var(--accent); }
+.cid { font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: .06em; }
+.cname { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.cmeta { font-size: 12px; color: var(--dim); }
+
+/* player */
+#topbar { display: flex; align-items: center; gap: 16px; padding: 12px 32px; background: #111827; border-bottom: 1px solid #ffffff14; font-size: 14px; flex-wrap: wrap; }
+#topbar a { color: var(--accent); text-decoration: none; }
+#topbar .stat { color: var(--dim); }
+#topbar .stat b { color: var(--text); }
+#scorebox { margin-left: auto; font-weight: 600; }
+#scorebox .ok { color: var(--green); } #scorebox .bad { color: var(--red); }
+
+#chartwrap { position: relative; padding: 8px 0; }
+#chart { display: block; width: 100%; }
+
+#prompt-panel { position: fixed; right: 24px; bottom: 24px; width: 420px; max-width: calc(100vw - 48px); background: var(--card); border: 1px solid #ffffff22; border-radius: 12px; padding: 18px 20px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+#prompt-panel h3 { margin: 0 0 4px; font-size: 13px; color: var(--accent); }
+#prompt-panel .q { font-size: 15px; line-height: 1.45; margin-bottom: 12px; }
+#prompt-panel .opt { display: block; width: 100%; text-align: left; background: #ffffff08; border: 1px solid #ffffff14; border-radius: 8px; color: var(--text); padding: 10px 12px; margin-bottom: 8px; cursor: pointer; font-size: 14px; }
+#prompt-panel .opt:hover { border-color: var(--accent); }
+#prompt-panel .opt.correct { border-color: var(--green); background: #22c55e1a; }
+#prompt-panel .opt.wrong { border-color: var(--red); background: #ef44441a; }
+#prompt-panel .expl { font-size: 13px; color: var(--dim); margin-top: 8px; }
+#prompt-panel .next { margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; border: 0; background: var(--accent); color: #083344; font-weight: 700; cursor: pointer; }
+
+#final { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
+#final.show { display: flex; }
+#final .box { background: var(--card); padding: 28px 32px; border-radius: 12px; text-align: center; min-width: 320px; }
+#final h2 { margin: 0 0 8px; }
+#final button { margin-top: 14px; padding: 10px 18px; border-radius: 8px; border: 0; background: var(--accent); font-weight: 700; cursor: pointer; }
+
+#hint { color: var(--dim); font-size: 13px; }
+#controls button { background: #ffffff10; color: var(--text); border: 1px solid #ffffff20; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+#controls button:hover { border-color: var(--accent); }

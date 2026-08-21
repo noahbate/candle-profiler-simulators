@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulator — playing</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head><body>
+<div id="topbar">
+  <a href="index.html">&larr; Catalog</a>
+  <span class="stat" id="scenario-name"></span>
+  <span class="stat" id="progress"></span>
+  <span id="controls">
+    <button id="btn-prev">&#9664; prev</button>
+    <button id="btn-play">&#9654; Play</button>
+    <button id="btn-next">next &#9654;</button>
+    <button id="btn-speed">1x</button>
+    <button id="btn-skip">Skip to answer</button>
+    <span id="hint">Space = play/pause</span>
+  </span>
+  <span id="scorebox"></span>
+</div>
+<div id="chartwrap"><canvas id="chart"></canvas></div>
+
+<div id="prompt-panel" style="display:none">
+  <h3 id="p-tag"></h3>
+  <div class="q" id="p-q"></div>
+  <div id="p-opts"></div>
+  <div class="expl" id="p-expl" style="display:none"></div>
+  <button class="next" id="p-next" style="display:none">Continue</button>
+</div>
+
+<div id="final"><div class="box">
+  <h2 id="f-title"></h2>
+  <div id="f-detail"></div>
+  <button onclick="location.href='index.html'">Back to catalog</button>
+</div></div>
+
+<script src="assets/player.js"></script>
+</body></html>
