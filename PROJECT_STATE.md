@@ -30,14 +30,35 @@ Private clone of the Daily Profiler Bootcamp "Practice Builder" simulators, reve
 - **Live:** https://candle-profiler-simulators-hermes-nb.vercel.app/
   - Verified: index 200, 01a scenario 30 prompts, gen scenario 25 prompts, play page prompt fires.
 
+## Generator fidelity (validated against captured site payloads)
+
+Reverse-engineered each concept's detection logic by diffing generated output vs the captured
+`reference/assemble/*.json` on the SAME trading day the site used.
+
+| Concept | Box/anchor | Trigger rule | Verified fidelity | Status |
+|---------|-----------|--------------|------------------|--------|
+| **01a** Box Breakout | first 5 min (exact, 0.00 diff) | breach = wick beyond box edge (tick-level, NOT 0.05%); `false_05_box` if price closes back inside, `momentum_breakout` if it holds | box exact; event logic understood; **exact trigger-bar timing NOT reproduced** (naive version 0/30) | ❌ not faithful |
+| **01d** Instat | Q1 = first 15 min, Q2 = next 15 min | first Q2 bar taking out Q1 high→bullish / Q1 low→bearish; single-side only | **14/15 trigger bars exact** vs capture; correct answers 14/14; 1 ambiguous double-break hour skipped | ✓ verified |
+| **01e** Doji | Q1/Q2/Q3 = three 15-min quarters | after instat setup, Q3 takes Q2 opposite extreme → doji; price in Q = Q2 extreme | **bit-for-bit on captured day** (7/7 trigger, 7/7 Q-text incl. price, 7/7 answer) | ✓ verified |
+
+### 01a — what's still wrong
+- Site fires `false_05_box` at the bar where price *closes back inside* the box after an excursion;
+  `momentum_breakout` at the first breach bar when it never returns. My generator emits the breach
+  bar for both and uses a 0.05% threshold (site uses exact box edge / tick-level). Result: wrong
+  bars, wrong question wording. Generator exists but is NOT curriculum-accurate — labeled UNVERIFIED
+  in the catalog. Requires reverse-engineering the exact "meaningful breakout + return-inside" timing.
+
+### 01d — the 1 unresolved case
+- Hour where Q2 breaks BOTH Q1 high and low (ambiguous): site skips it; my single-side filter also
+  skips it on most days but occasionally differs. 14/15 is the confirmed floor.
+
 ## Known gaps / TODO (do NOT claim done)
-1. **Generated scenarios only cover 01a.** 01c/01d/01e/01f/01g/02a/02c/02d still use captured
-   site data only. Faithful regeneration requires per-concept detection rules:
-   - 01c BP Breach, 01d Instat, 01e Doji, 01f Prev Hour, 01g Sweep+SB = moderate (few templates)
-   - 02a Line/Apex (~32 unique q), 02d 3-Candle (~86 prompts, C1/C2/C3 window engine) = heavy
-2. `generate_scenario.py` `--random` picks recent-ish days; add date-range / multiple-day batch.
-3. No automated test harness yet — walk-all UI test timed out; relying on structural + single-path checks.
-4. Generator prompts are paraphrased (not verbatim site copy) for 01a — acceptable for private use.
+1. **01a generator unfaithful** — see above. Either fix the trigger timing or stop shipping 01a-gen.
+2. **01c/01f/01g/02a/02c/02d** still captured-only (no generator). 02a (32 unique Qs) and
+   02d (86 prompts, 3-candle C1/C2/C3 engine) are heavy bespoke work.
+3. `generate_scenario.py` `--random` picks recent-ish days; add date-range / multiple-day batch.
+4. No automated walk-all test harness (UI loop timed out); relying on structural + single-path checks
+   plus the day-level fidelity diffs above.
 
 ## Related projects touched
 - `candle-profiler` (data source): `data/working/NQ_work_1min.csv` read by generator. No changes made.

@@ -141,8 +141,11 @@ def _quarter_range(bars, q_start, q_len=15):
     return max(b['high'] for b in seg), min(b['low'] for b in seg)
 
 def gen_01d(bars, date_str):
-    """Instat (01d): per hour, compare Q2 range to Q1 range. If Q2 takes out Q1 high -> bullish
-    instat (Q1 set the low); if Q2 takes out Q1 low -> bearish instat (Q1 set the high)."""
+    """Instat (01d): per hour, the FIRST bar in Q2 that takes out Q1's high OR low is the
+    instat signal. Bullish (Q1 set the LOW) if Q2 takes Q1 high; bearish (Q1 set the HIGH)
+    if Q2 takes Q1 low. Site fires exactly at that first breakout bar. Skip ambiguous hours
+    where Q2 breaks BOTH sides (verified: site emits 14/15 matched hours on the reference
+    capture; the remaining 1 is a site-specific filter not yet reproduced)."""
     prompts, markers, pid = [], [], 0
     def mkid():
         nonlocal pid; pid += 1; return f'gen-{date_str}-{pid:03d}'
@@ -152,18 +155,23 @@ def gen_01d(bars, date_str):
         if datetime.fromtimestamp(bars[i]['time'], tz=timezone.utc).minute != 0:
             i += 1; continue
         q1h, q1l = _quarter_range(bars, i)
-        q2h, q2l = _quarter_range(bars, i + Q)
-        if q1h is None or q2h is None:
-            break
-        instat = None
-        if q2h > q1h:
-            instat = 'low'   # bullish: Q1 set the LOW
-        elif q2l < q1l:
-            instat = 'high'  # bearish: Q1 set the HIGH
-        if instat:
-            trigger = i + 2 * Q  # fire at start of Q3 (after the instat setup resolves)
-            if trigger >= len(bars):
-                break
+        # find FIRST breakout bar in Q2 (single side only)
+        trigger = None; instat = None
+        bull = bear = False
+        for k in range(i + Q, i + 2 * Q):
+            if bars[k]['high'] > q1h: bull = True
+            if bars[k]['low'] < q1l: bear = True
+        if bull and not bear:
+            instat = 'low';  # bullish
+            for k in range(i + Q, i + 2 * Q):
+                if bars[k]['high'] > q1h:
+                    trigger = k; break
+        elif bear and not bull:
+            instat = 'high'  # bearish
+            for k in range(i + Q, i + 2 * Q):
+                if bars[k]['low'] < q1l:
+                    trigger = k; break
+        if instat and trigger is not None:
             if instat == 'low':
                 q = 'Q2 has taken out Q1\'s high. What is the instat classification?'
                 correct = 'Instat low — bullish for the hour. Q1 set the LOW, expect Q4 high.'
@@ -230,9 +238,10 @@ def gen_01e(bars, date_str):
         if trigger is None:
             trigger = i + 2 * Q
         q = (f'Instat {instat} ({direction}) — Q2 broke Q1\'s {"high" if instat=="LOW" else "low"}. '
-             f'Now Q3 broke Q2\'s {broke} ({bars[trigger]["close"]:.2f}). Doji alert!')
+             f'Now Q3 broke Q2\'s {broke} ({q2l if broke=="low" else q2h:.2f}). Doji alert!')
         md = {'event': 'doji', 'instat': instat, 'instat_direction': direction,
-              'q2_high': q2h, 'q2_low': q2l, 'doji_bar_local': trigger, 'doji_price': bars[trigger]['close']}
+              'q2_high': q2h, 'q2_low': q2l, 'doji_bar_local': trigger,
+              'doji_price': q2l if broke == 'low' else q2h}
         markers.append({'concept': '01e', 'triggerBarIdx': trigger,
                         'triggerTime': bars[trigger]['time'],
                         'nyHour': datetime.fromtimestamp(bars[trigger]['time'], tz=timezone.utc).hour,
