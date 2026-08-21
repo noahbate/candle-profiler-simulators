@@ -11,10 +11,16 @@ const CONCEPTS = [
   { id: '02c', name: 'Rolling 3H Structure' },
   { id: '02d', name: '3H Probability Flags' },
   // Generated scenarios — verify status noted in PROJECT_STATE.md
+  // 01a: CURRICULUM-CONFIRMED LOGIC (vault: Pack BootCamp 05 Box Hourly Quarters).
+  //      18/30 exact bar+answer on captured day; 18/18 correct answers on shared bars.
+  //      Remaining gap: false_05_box suckback-confirmation bar off by 1-8 bars (the
+  //      "finding footing" timing). Event selection (hour/direction/type) is faithful.
   // 01d: curriculum-verified (14/15 trigger bars exact vs capture, 1 ambiguous hour)
   // 01e: curriculum-verified (bit-for-bit on captured day incl. price text)
-  // 01a: NO generator shipped — captured 01a above is the faithful clone; the engine's
-  //      breach-confirmation-distance filter could not be reverse-engineered (see PROJECT_STATE)
+  { id: 'gen_01a_2024-01-17', name: 'Gen 01a Box Breakout (2024-01-17) ~' },
+  { id: 'gen_01a_2025-01-21', name: 'Gen 01a Box Breakout (2025-01-21) ~' },
+  { id: 'gen_01a_2025-03-14', name: 'Gen 01a Box Breakout (2025-03-14) ~' },
+  { id: 'gen_01a_2025-06-09', name: 'Gen 01a Box Breakout (2025-06-09) ~' },
   { id: 'gen_01d_2025-01-21', name: 'Gen 01d Instat (2025-01-21) ✓' },
   { id: 'gen_01d_2025-03-14', name: 'Gen 01d Instat (2025-03-14) ✓' },
   { id: 'gen_01d_2025-06-09', name: 'Gen 01d Instat (2025-06-09) ✓' },

@@ -41,14 +41,24 @@ Reverse-engineered each concept's detection logic by diffing generated output vs
 | **01d** Instat | Q1 = first 15 min, Q2 = next 15 min | first Q2 bar taking out Q1 high→bullish / Q1 low→bearish; single-side only | **14/15 trigger bars exact** vs capture; correct answers 14/14; 1 ambiguous double-break hour skipped | ✓ verified |
 | **01e** Doji | Q1/Q2/Q3 = three 15-min quarters | after instat setup, Q3 takes Q2 opposite extreme → doji; price in Q = Q2 extreme | **bit-for-bit on captured day** (7/7 trigger, 7/7 Q-text incl. price, 7/7 answer) | ✓ verified |
 
-### 01a — pulled from generated scenarios (2026-08-21)
-- The captured `01a.json` (in `scenarios/` and `reference/assemble/`) IS the faithful clone.
-- The **generator for 01a was removed from shipped scenarios** because its breach-confirmation
-  rule is not reproducible. Findings: box = first 5 min (exact, 0.00 diff). Site fires at the
-  first bar reaching `breach_price`, which sits 35–100 ticks beyond the box edge — NOT a fixed
-  % threshold (swept 0.05%→1.0%, best was 0.05% at only 10/30). The confirmation distance scales
-  with box size but no clean formula emerged from one day's data (would require overfitting).
-  Until that filter is reverse-engineered, 01a has NO generator — only the captured scenario.
+### 01a — RE-ENGINEERED with curriculum source (2026-08-21)
+- **Source of truth:** vault `02. Strategy Library/Pack BootCamp/Pack BootCamp 05 Box Hourly Quarters.md`
+  and `Pack BootCamp Wk5 Hourly 05 Box.md` (vectorized bootcamp material).
+- **Confirmed logic:**
+  - Box = 00–05 min of each hour (verified exact, 0.00 diff vs capture).
+  - ETH breakout threshold = box edge × (1 ± 0.05%) (`bps_threshold: 0.0005`).
+  - `momentum_breakout` = first print (wick) beyond the 0.05% threshold that holds (never sucks
+    back to the 50% level) → fire at the breach bar.
+  - `false_05_box` = price swipes the raw box but FAILS to reach 0.05%, then **sucks back and
+    finds footing at the 50% level (box mid)** → fire at that finding-footing bar. This is the
+    "time component": price swipes, fills, swipes, fills, then commits at the open/mid.
+- **Fidelity (captured 01a day 2024-01-17):** 18/30 exact trigger-bar+answer; **18/18 correct
+  answers on the 18 shared bars**; event SET (hour/direction/type) faithful. Remaining gap: the
+  false_05_box suckback-confirmation bar lands 1–8 bars off the site's in ~4 hours (the site's
+  "final footing" is a few bars after the first close beyond mid). Labeled `~` (logic-verified,
+  timing approximate) in the catalog — NOT bit-perfect, but pedagogically faithful.
+- Generator re-added to shipped scenarios with the `~` marker (previously removed as UNVERIFIED
+  when the old logic scored 0/30).
 
 ### 01d — the 1 unresolved case
 - Hour where Q2 breaks BOTH Q1 high and low (ambiguous): site skips it; my single-side filter also

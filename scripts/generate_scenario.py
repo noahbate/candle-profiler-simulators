@@ -64,8 +64,16 @@ def load_day(date_str):
     return rows
 
 def gen_01a(bars, date_str):
-    """Box Breakout detector: hourly 0-5 box (first 5 min of each hour),
-    0.05% threshold, breach -> momentum_breakout; breach then suckback -> false_05_box."""
+    """Box Breakout (01a) — curriculum-confirmed logic (vault: Pack BootCamp 05 Box Hourly Quarters).
+
+    Box = first 5 min of each hour (00-05). Breakout threshold = box edge x (1 +/- 0.05%) (ETH).
+    - momentum_breakout: price prints (wick) beyond the 0.05% threshold and NEVER sucks back to
+      the 50% level (box mid) -> fire at the first breach bar.
+    - false_05_box: price swipes the raw box but FAILS to reach the 0.05% threshold, then sucks
+      back and finds footing at the 50% level (box mid) -> fire at the first close beyond mid
+      AFTER the box swipe (the 'confirmation' / finding-footing bar). This is the time component:
+      price swipes, fills, swipes, fills, then commits at the open/mid.
+    """
     BPS = 0.0005
     prompts, markers, pid = [], [], 0
     def mkid():
@@ -74,7 +82,6 @@ def gen_01a(bars, date_str):
         return f'gen-{date_str}-{pid:03d}'
     i = 0
     while i + 60 < len(bars):
-        # bar i starts an hour if its minute == 0
         t = datetime.fromtimestamp(bars[i]['time'], tz=timezone.utc)
         if t.minute != 0:
             i += 1
@@ -88,48 +95,63 @@ def gen_01a(bars, date_str):
         thr_up = bh * (1 + BPS)
         thr_dn = bl * (1 - BPS)
         hour_end = min(i + 60, len(bars))
-        # scan the hour — at most one event per side per hour
         fired = set()
-        for j in range(i + 5, hour_end):
-            b = bars[j]
-            for side, thr in (('above', thr_up), ('below', thr_dn)):
-                if side in fired:
-                    continue
-                broke = b['high'] > thr if side == 'above' else b['low'] < thr
-                if broke:
-                    fired.add(side)
-                    # suckback = a later close back inside [bl, bh]
-                    suck = None
-                    for k in range(j + 1, hour_end):
-                        c = bars[k]['close']
-                        if bl <= c <= bh:
-                            suck = k
-                            break
-                    q, ans_map = (T_01A_FALSE[0] if suck else T_01A_BREACH[0])
-                    md_event = 'false_05_box' if suck else 'momentum_breakout'
-                    md = {'event': md_event, 'box_high': bh, 'box_mid': bm, 'box_low': bl,
-                          'bps_threshold': BPS, 'breakout_side': side,
-                          'threshold_price': thr, 'threshold_session': 'ETH'}
-                    if suck:
-                        md.update({'suckback_bar': suck, 'suckback_close': bars[suck]['close']})
-                    else:
-                        md.update({'breach_bar': j, 'breach_price': b['high'] if side == 'above' else b['low']})
-                    markers.append({'concept': '01a', 'triggerBarIdx': j,
-                                    'triggerTime': bars[j]['time'],
-                                    'nyHour': datetime.fromtimestamp(bars[j]['time'], tz=timezone.utc).hour,
-                                    'question': q.format(side=side), 'metadata': md})
-                    correct = ans_map[side]
-                    decoys = ['Temporary pullback — expect another attempt',
-                              'Range-bound hour — no directional read'] \
-                        if suck else ['False breakout — expect suckback into the box',
-                                      'Neutral — wait for the next hour']
-                    opts = [correct] + decoys
-                    random.shuffle(opts)
-                    prompts.append({'id': mkid(), 'triggerCandle': j, 'type': 'multiple_choice',
-                                    'questionText': q.format(side=side), 'correctAnswer': correct,
-                                    'explanation': '', 'points': 10, 'answerOptions': opts,
-                                    'conceptTag': '01a'})
-                    break  # one event per hour-direction
+        for side in ('above', 'below'):
+            if side in fired:
+                continue
+            thr = thr_up if side == 'above' else thr_dn
+            # find first wick beyond raw box (the 'swipe')
+            swipe = None
+            for j in range(i + 5, hour_end):
+                if side == 'above' and bars[j]['high'] > bh:
+                    swipe = j; break
+                if side == 'below' and bars[j]['low'] < bl:
+                    swipe = j; break
+            if swipe is None:
+                continue
+            # resolve: does it reach the 0.05% threshold (momentum) or suck back to mid (false)?
+            res = None
+            for k in range(swipe, hour_end):
+                c = bars[k]['close']
+                hit_thr = (bars[k]['high'] > thr) if side == 'above' else (bars[k]['low'] < thr)
+                if hit_thr:
+                    res = ('momentum_breakout', k)  # hold; fire at breach bar
+                    break
+                # suckback confirmed: close beyond the 50th level (box mid = 50% anchor)
+                beyond_mid = (c > bm) if side == 'below' else (c < bm)
+                if beyond_mid:
+                    res = ('false_05_box', k)  # fire at the finding-footing bar
+                    break
+            if res is None:
+                # never resolved within hour -> treat as momentum (held)
+                res = ('momentum_breakout', swipe)
+            md_event, trigger = res
+            fired.add(side)
+            if md_event == 'momentum_breakout':
+                md = {'event': md_event, 'box_high': bh, 'box_mid': bm, 'box_low': bl,
+                      'bps_threshold': BPS, 'breakout_side': side,
+                      'breach_bar': trigger - i, 'breach_price': bars[trigger]['high'] if side == 'above' else bars[trigger]['low'],
+                      'threshold_price': thr, 'threshold_session': 'ETH'}
+                q, ans_map = T_01A_BREACH[0]
+                decoys = ['False breakout — expect suckback into the box', 'Neutral — wait for the next hour']
+            else:
+                md = {'event': md_event, 'box_high': bh, 'box_mid': bm, 'box_low': bl,
+                      'bps_threshold': BPS, 'breakout_side': side,
+                      'suckback_bar': trigger - i, 'suckback_close': bars[trigger]['close'],
+                      'threshold_price': thr, 'threshold_session': 'ETH'}
+                q, ans_map = T_01A_FALSE[0]
+                decoys = ['Temporary pullback — expect another attempt', 'Range-bound hour — no directional read']
+            markers.append({'concept': '01a', 'triggerBarIdx': trigger,
+                            'triggerTime': bars[trigger]['time'],
+                            'nyHour': datetime.fromtimestamp(bars[trigger]['time'], tz=timezone.utc).hour,
+                            'question': q.format(side=side), 'metadata': md})
+            correct = ans_map[side]
+            opts = [correct] + decoys
+            random.shuffle(opts)
+            prompts.append({'id': mkid(), 'triggerCandle': trigger, 'type': 'multiple_choice',
+                            'questionText': q.format(side=side), 'correctAnswer': correct,
+                            'explanation': '', 'points': 10, 'answerOptions': opts,
+                            'conceptTag': '01a'})
         i += 60
     return prompts, markers
 
