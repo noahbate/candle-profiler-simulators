@@ -15,6 +15,7 @@ import pandas as pd
 
 DATA = Path('/Users/hermes/projects/candle-profiler/data/working/NQ_work_1min.csv')
 OUT = Path(__file__).resolve().parent.parent / 'web' / 'scenarios'
+_DF = None  # cached parsed frame for load_day
 
 # --- question templates per concept (extracted from site captures) ---
 T_01A_BREACH = [
@@ -33,22 +34,30 @@ T_01A_FALSE = [
 
 def load_day(date_str):
     """Return 1-min NQ bars for one trading day (18:00 prev day -> 17:00 day of).
-    CSV timestamps are US/Eastern naive: YYYY-MM-DD HH:MM (or MM/DD/YYYY HH:MM)."""
-    df = pd.read_csv(DATA)
-    tcol = 'timestamp' if 'timestamp' in df.columns else 'time'
-    ts = df[tcol]
-    # handle both ISO and MM/DD/YYYY formats
-    df['ts'] = pd.to_datetime(ts, format='mixed')
-    # assume already US/Eastern clock time
-    df['ts'] = df['ts'].dt.tz_localize('US/Eastern')
+    CSV timestamps are US/Eastern naive: YYYY-MM-DD HH:MM (or MM/DD/YYYY HH:MM).
+    Parsed frame is cached to disk as parquet so the 267MB mixed-format parse runs once."""
+    global _DF
+    if _DF is None:
+        cache = DATA.with_suffix('.parquet')
+        if cache.exists():
+            _DF = pd.read_parquet(cache)
+        else:
+            df = pd.read_csv(DATA)
+            tcol = 'timestamp' if 'timestamp' in df.columns else 'time'
+            ts = df[tcol]
+            df['ts'] = pd.to_datetime(ts, format='mixed').dt.tz_localize('US/Eastern')
+            df = df[['ts', 'open', 'high', 'low', 'close']]
+            df.to_parquet(cache, index=False)
+            _DF = df
+    df = _DF
     d = pd.Timestamp(date_str).date()
     from datetime import timedelta
-    prev = d - timedelta(days=1)
+    prev = (d - timedelta(days=1))
     s = pd.Timestamp(datetime(prev.year, prev.month, prev.day, 18, 0), tz='US/Eastern')
     e = pd.Timestamp(datetime(d.year, d.month, d.day, 17, 0), tz='US/Eastern')
     m = df[(df['ts'] >= s) & (df['ts'] < e)]
     rows = [{
-        'time': int(r.ts.tz_convert('UTC').timestamp()),
+        'time': int(r.ts.value // 10**9),
         'open': float(r.open), 'high': float(r.high),
         'low': float(r.low), 'close': float(r.close),
     } for r in m.itertuples()]
@@ -124,6 +133,117 @@ def gen_01a(bars, date_str):
         i += 60
     return prompts, markers
 
+def _quarter_range(bars, q_start, q_len=15):
+    """Return (high, low) of a 15-min quarter starting at bar index q_start."""
+    seg = bars[q_start:q_start + q_len]
+    if len(seg) < q_len:
+        return None, None
+    return max(b['high'] for b in seg), min(b['low'] for b in seg)
+
+def gen_01d(bars, date_str):
+    """Instat (01d): per hour, compare Q2 range to Q1 range. If Q2 takes out Q1 high -> bullish
+    instat (Q1 set the low); if Q2 takes out Q1 low -> bearish instat (Q1 set the high)."""
+    prompts, markers, pid = [], [], 0
+    def mkid():
+        nonlocal pid; pid += 1; return f'gen-{date_str}-{pid:03d}'
+    Q = 15  # quarter length in bars
+    i = Q  # skip first quarter (no prior)
+    while i + 3 * Q < len(bars):
+        if datetime.fromtimestamp(bars[i]['time'], tz=timezone.utc).minute != 0:
+            i += 1; continue
+        q1h, q1l = _quarter_range(bars, i)
+        q2h, q2l = _quarter_range(bars, i + Q)
+        if q1h is None or q2h is None:
+            break
+        instat = None
+        if q2h > q1h:
+            instat = 'low'   # bullish: Q1 set the LOW
+        elif q2l < q1l:
+            instat = 'high'  # bearish: Q1 set the HIGH
+        if instat:
+            trigger = i + 2 * Q  # fire at start of Q3 (after the instat setup resolves)
+            if trigger >= len(bars):
+                break
+            if instat == 'low':
+                q = 'Q2 has taken out Q1\'s high. What is the instat classification?'
+                correct = 'Instat low — bullish for the hour. Q1 set the LOW, expect Q4 high.'
+                decoys = ['Instat high — bearish for the hour. Q1 set the HIGH, expect Q4 low.',
+                          'No instat — Q2 stayed within Q1 range.']
+                direction = 'bullish'
+            else:
+                q = 'Q2 has taken out Q1\'s low. What is the instat classification?'
+                correct = 'Instat high — bearish for the hour. Q1 set the HIGH, expect Q4 low.'
+                decoys = ['Instat low — bullish for the hour. Q1 set the LOW, expect Q4 high.',
+                          'No instat — Q2 stayed within Q1 range.']
+                direction = 'bearish'
+            md = {'event': 'instat', 'instat_type': instat, 'instat_direction': direction,
+                  'q1_high': q1h, 'q1_low': q1l, 'trigger_bar_local': trigger, 'trigger_price': bars[trigger]['close']}
+            markers.append({'concept': '01d', 'triggerBarIdx': trigger,
+                            'triggerTime': bars[trigger]['time'],
+                            'nyHour': datetime.fromtimestamp(bars[trigger]['time'], tz=timezone.utc).hour,
+                            'question': q, 'metadata': md})
+            opts = [correct] + decoys; random.shuffle(opts)
+            prompts.append({'id': mkid(), 'triggerCandle': trigger, 'type': 'multiple_choice',
+                            'questionText': q, 'correctAnswer': correct, 'explanation': '',
+                            'points': 10, 'answerOptions': opts, 'conceptTag': '01d'})
+        i += 60
+    return prompts, markers
+
+def gen_01e(bars, date_str):
+    """Doji (01e): after an instat setup (Q2 takes out Q1 high/low), Q3 takes out Q2's opposite
+    extreme -> doji reversal alert. Fire at the Q3 breakout bar."""
+    prompts, markers, pid = [], [], 0
+    def mkid():
+        nonlocal pid; pid += 1; return f'gen-{date_str}-{pid:03d}'
+    Q = 15
+    i = Q
+    while i + 3 * Q < len(bars):
+        if datetime.fromtimestamp(bars[i]['time'], tz=timezone.utc).minute != 0:
+            i += 1; continue
+        q1h, q1l = _quarter_range(bars, i)
+        q2h, q2l = _quarter_range(bars, i + Q)
+        q3h, q3l = _quarter_range(bars, i + 2 * Q)
+        if None in (q1h, q2h, q3h):
+            break
+        instat = 'LOW' if q2h > q1h else ('HIGH' if q2l < q1l else None)
+        if not instat:
+            i += 60; continue
+        if instat == 'LOW':  # bullish instat; doji if Q3 takes out Q2 low
+            if q3l < q2l:
+                direction = 'bullish'; broke = 'low'; correct = 'Doji — bullish thesis reversed, Q3 broke Q2 low'
+                decoy = 'No doji — bullish continues'
+            else:
+                i += 60; continue
+        else:  # bearish instat; doji if Q3 takes out Q2 high
+            if q3h > q2h:
+                direction = 'bearish'; broke = 'high'; correct = 'Doji — bearish thesis reversed, Q3 broke Q2 high'
+                decoy = 'No doji — bearish continues'
+            else:
+                i += 60; continue
+        # find the first bar inside Q3 that breaks Q2 extreme
+        trigger = None
+        for k in range(i + 2 * Q, i + 3 * Q):
+            if broke == 'low' and bars[k]['low'] < q2l:
+                trigger = k; break
+            if broke == 'high' and bars[k]['high'] > q2h:
+                trigger = k; break
+        if trigger is None:
+            trigger = i + 2 * Q
+        q = (f'Instat {instat} ({direction}) — Q2 broke Q1\'s {"high" if instat=="LOW" else "low"}. '
+             f'Now Q3 broke Q2\'s {broke} ({bars[trigger]["close"]:.2f}). Doji alert!')
+        md = {'event': 'doji', 'instat': instat, 'instat_direction': direction,
+              'q2_high': q2h, 'q2_low': q2l, 'doji_bar_local': trigger, 'doji_price': bars[trigger]['close']}
+        markers.append({'concept': '01e', 'triggerBarIdx': trigger,
+                        'triggerTime': bars[trigger]['time'],
+                        'nyHour': datetime.fromtimestamp(bars[trigger]['time'], tz=timezone.utc).hour,
+                        'question': q, 'metadata': md})
+        opts = [correct, decoy]; random.shuffle(opts)
+        prompts.append({'id': mkid(), 'triggerCandle': trigger, 'type': 'multiple_choice',
+                        'questionText': q, 'correctAnswer': correct, 'explanation': '',
+                        'points': 10, 'answerOptions': opts, 'conceptTag': '01e'})
+        i += 60
+    return prompts, markers
+
 def build_scenario(concept, date_str, bars, prompts, markers):
     return {'scenario': {
         'id': f'gen-{concept}-{date_str}',
@@ -161,8 +281,12 @@ def main():
         sys.exit(f'too few bars for {a.date} ({len(bars)})')
     if a.concept == '01a':
         prompts, markers = gen_01a(bars, a.date)
+    elif a.concept == '01d':
+        prompts, markers = gen_01d(bars, a.date)
+    elif a.concept == '01e':
+        prompts, markers = gen_01e(bars, a.date)
     else:
-        sys.exit(f'concept {a.concept} not implemented yet (01a only in v1)')
+        sys.exit(f'concept {a.concept} not implemented yet (01a/01d/01e done)')
     sc = build_scenario(a.concept, a.date, bars, prompts, markers)
     OUT.mkdir(parents=True, exist_ok=True)
     out = OUT / f'gen_{a.concept}_{a.date}.json'

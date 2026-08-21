@@ -10,7 +10,15 @@ const CONCEPTS = [
   { id: '02a', name: 'Line/Apex (Framework)' },
   { id: '02c', name: 'Rolling 3H Structure' },
   { id: '02d', name: '3H Probability Flags' },
-  { id: 'gen_01a_2025-01-21', name: '★ Generated: Box Breakout (2025-01-21)' },
+  { id: 'gen_01a_2025-01-21', name: '★ Gen 01a Box Breakout (2025-01-21)' },
+  { id: 'gen_01a_2025-03-14', name: '★ Gen 01a Box Breakout (2025-03-14)' },
+  { id: 'gen_01a_2025-06-09', name: '★ Gen 01a Box Breakout (2025-06-09)' },
+  { id: 'gen_01d_2025-01-21', name: '★ Gen 01d Instat (2025-01-21)' },
+  { id: 'gen_01d_2025-03-14', name: '★ Gen 01d Instat (2025-03-14)' },
+  { id: 'gen_01d_2025-06-09', name: '★ Gen 01d Instat (2025-06-09)' },
+  { id: 'gen_01e_2025-01-21', name: '★ Gen 01e Doji (2025-01-21)' },
+  { id: 'gen_01e_2025-03-14', name: '★ Gen 01e Doji (2025-03-14)' },
+  { id: 'gen_01e_2025-06-09', name: '★ Gen 01e Doji (2025-06-09)' },
 ];
 
 async function renderCatalog() {
