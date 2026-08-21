@@ -12,9 +12,9 @@ const CONCEPTS = [
   { id: '02d', name: '3H Probability Flags' },
   // Generated scenarios — verify status noted in PROJECT_STATE.md
   // 01a: CURRICULUM-CONFIRMED LOGIC (vault: Pack BootCamp 05 Box Hourly Quarters).
-  //      18/30 exact bar+answer on captured day; 18/18 correct answers on shared bars.
-  //      Remaining gap: false_05_box suckback-confirmation bar off by 1-8 bars (the
-  //      "finding footing" timing). Event selection (hour/direction/type) is faithful.
+  //      19/30 exact bar+answer on captured day; 19/19 correct answers on shared bars.
+  //      false_05_box = swipe box, fail 0.05% thr, suck back to 50% level + hold 2 bars
+  //      (the "finding footing" time component). ~3 hrs land 1-3 bars off site's final foot.
   // 01d: curriculum-verified (14/15 trigger bars exact vs capture, 1 ambiguous hour)
   // 01e: curriculum-verified (bit-for-bit on captured day incl. price text)
   { id: 'gen_01a_2024-01-17', name: 'Gen 01a Box Breakout (2024-01-17) ~' },

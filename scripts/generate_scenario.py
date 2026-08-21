@@ -111,17 +111,26 @@ def gen_01a(bars, date_str):
                 continue
             # resolve: does it reach the 0.05% threshold (momentum) or suck back to mid (false)?
             res = None
+            HOLD = 2  # footing must commit: close beyond 50% level for HOLD consecutive bars
             for k in range(swipe, hour_end):
                 c = bars[k]['close']
                 hit_thr = (bars[k]['high'] > thr) if side == 'above' else (bars[k]['low'] < thr)
                 if hit_thr:
                     res = ('momentum_breakout', k)  # hold; fire at breach bar
                     break
-                # suckback confirmed: close beyond the 50th level (box mid = 50% anchor)
+                # suckback confirmed: close beyond the 50% level (box mid) and it holds
                 beyond_mid = (c > bm) if side == 'below' else (c < bm)
                 if beyond_mid:
-                    res = ('false_05_box', k)  # fire at the finding-footing bar
-                    break
+                    cnt = 0
+                    for j in range(k, min(k + HOLD, hour_end)):
+                        cc = bars[j]['close']
+                        if (cc > bm) if side == 'below' else (cc < bm):
+                            cnt += 1
+                        else:
+                            break
+                    if cnt >= HOLD:
+                        res = ('false_05_box', k)  # fire at the finding-footing bar
+                        break
             if res is None:
                 # never resolved within hour -> treat as momentum (held)
                 res = ('momentum_breakout', swipe)
