@@ -13,10 +13,8 @@ const CONCEPTS = [
   // Generated scenarios — verify status noted in PROJECT_STATE.md
   // 01d: curriculum-verified (14/15 trigger bars exact vs capture, 1 ambiguous hour)
   // 01e: curriculum-verified (bit-for-bit on captured day incl. price text)
-  // 01a: ENGINE-GENERATED, NOT YET CURRICULUM-VERIFIED (box/event logic known; exact trigger timing unfaithful)
-  { id: 'gen_01a_2025-01-21', name: 'GEN 01a Box Breakout (2025-01-21) — UNVERIFIED' },
-  { id: 'gen_01a_2025-03-14', name: 'GEN 01a Box Breakout (2025-03-14) — UNVERIFIED' },
-  { id: 'gen_01a_2025-06-09', name: 'GEN 01a Box Breakout (2025-06-09) — UNVERIFIED' },
+  // 01a: NO generator shipped — captured 01a above is the faithful clone; the engine's
+  //      breach-confirmation-distance filter could not be reverse-engineered (see PROJECT_STATE)
   { id: 'gen_01d_2025-01-21', name: 'Gen 01d Instat (2025-01-21) ✓' },
   { id: 'gen_01d_2025-03-14', name: 'Gen 01d Instat (2025-03-14) ✓' },
   { id: 'gen_01d_2025-06-09', name: 'Gen 01d Instat (2025-06-09) ✓' },
