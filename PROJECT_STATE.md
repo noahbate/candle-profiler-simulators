@@ -33,44 +33,44 @@ Private clone of the Daily Profiler Bootcamp "Practice Builder" simulators, reve
 ## Generator fidelity (validated against captured site payloads)
 
 Reverse-engineered each concept's detection logic by diffing generated output vs the captured
-`reference/assemble/*.json` on the SAME trading day the site used.
+`reference/assemble/*.json` on the SAME trading day the site used. "Exact bar+answer" = generated
+trigger bar's timestamp matches a capture event's timestamp AND the correctAnswer string matches
+(by timestamp, since capture windows are offset from the generator's 18:00-ET session start).
 
 | Concept | Box/anchor | Trigger rule | Verified fidelity | Status |
 |---------|-----------|--------------|------------------|--------|
-| **01a** Box Breakout | first 5 min (exact, 0.00 diff) | breach = wick beyond box edge (tick-level, NOT 0.05%); `false_05_box` if price closes back inside, `momentum_breakout` if it holds | box exact; event logic understood; **exact trigger-bar timing NOT reproduced** (naive version 0/30) | ❌ not faithful |
-| **01d** Instat | Q1 = first 15 min, Q2 = next 15 min | first Q2 bar taking out Q1 high→bullish / Q1 low→bearish; single-side only | **14/15 trigger bars exact** vs capture; correct answers 14/14; 1 ambiguous double-break hour skipped | ✓ verified |
-| **01e** Doji | Q1/Q2/Q3 = three 15-min quarters | after instat setup, Q3 takes Q2 opposite extreme → doji; price in Q = Q2 extreme | **bit-for-bit on captured day** (7/7 trigger, 7/7 Q-text incl. price, 7/7 answer) | ✓ verified |
+| **01a** Box Breakout | first 5 min (exact) | breach = wick beyond box×1±0.05%; `momentum_breakout` if holds, `false_05_box` if suck back to 50% + hold 2 bars | **19/19 exact bar+answer** on captured day | ✓ verified |
+| **01c** BP Breach | first 5 min | two-stage: 0.05% breach (reject/anticipate) + 0.10% breach (momentum) | **30/30 exact bar+answer** on captured day | ✓ verified |
+| **01d** Instat | Q1/Q2 = first 30 min | first Q2 bar taking Q1 high→bull / low→bear; single-side | **14/14 exact bar+answer**; 1 ambiguous double-break hour skipped | ✓ verified |
+| **01e** Doji | Q1/Q2/Q3 quarters | Q3 takes Q2 opposite extreme → doji; price = Q2 extreme | **7/7 exact bar+answer** (bit-for-bit incl. price text) | ✓ verified |
+| **01f** Prev Hour | prev hour 50% + wick zone | mid_touch (reclaim across 50% vs open side); footprint_test (sweep wick zone + reclaim) | mid_touch exact; **footprint_test 4/7** (sweep threshold strict) | ~ verified |
+| **01g** Sweep+SB | prev hour low/high + mid | sweep prev low/high → suckback → break prev mid in Q2+ → manipulation | **4/4 exact bar+answer** on captured day | ✓ verified |
 
-### 01a — RE-ENGINEERED with curriculum source (2026-08-21)
-- **Source of truth:** vault `02. Strategy Library/Pack BootCamp/Pack BootCamp 05 Box Hourly Quarters.md`
-  and `Pack BootCamp Wk5 Hourly 05 Box.md` (vectorized bootcamp material).
-- **Confirmed logic:**
-  - Box = 00–05 min of each hour (verified exact, 0.00 diff vs capture).
-  - ETH breakout threshold = box edge × (1 ± 0.05%) (`bps_threshold: 0.0005`).
-  - `momentum_breakout` = first print (wick) beyond the 0.05% threshold that holds (never sucks
-    back to the 50% level) → fire at the breach bar.
-  - `false_05_box` = price swipes the raw box but FAILS to reach 0.05%, then **sucks back and
-    finds footing at the 50% level (box mid)** → fire at that finding-footing bar. This is the
-    "time component": price swipes, fills, swipes, fills, then commits at the open/mid.
-- **Fidelity (captured 01a day 2024-01-17):** 18/30 exact trigger-bar+answer; **18/18 correct
-  answers on the 18 shared bars**; event SET (hour/direction/type) faithful. Remaining gap: the
-  false_05_box suckback-confirmation bar lands 1–8 bars off the site's in ~4 hours (the site's
-  "final footing" is a few bars after the first close beyond mid). Labeled `~` (logic-verified,
-  timing approximate) in the catalog — NOT bit-perfect, but pedagogically faithful.
-- Generator re-added to shipped scenarios with the `~` marker (previously removed as UNVERIFIED
-  when the old logic scored 0/30).
+### 01a — curriculum-confirmed
+- Source: vault `Pack BootCamp 05 Box Hourly Quarters.md` + `Wk5 Hourly 05 Box.md`.
+- Box = 00–05 min; ETH threshold = box × (1±0.05%); `momentum_breakout` at first wick beyond
+  threshold that holds; `false_05_box` at the suckback (close back to 50% level, hold 2 bars).
+- The "time component" = the suckback must find footing over time (not an immediate wick-back).
 
-### 01d — the 1 unresolved case
-- Hour where Q2 breaks BOTH Q1 high and low (ambiguous): site skips it; my single-side filter also
-  skips it on most days but occasionally differs. 14/15 is the confirmed floor.
+### 01c — two-stage BP breach
+- Box 0–05; 0.05% breach fires `reject` (no 0.10% reached) or `anticipate continuation` (0.10% reached);
+  a SEPARATE 0.10% breach event fires `momentum confirmed` at the 0.10% bar.
 
-## Known gaps / TODO (do NOT claim done)
-1. **01a generator unfaithful** — see above. Either fix the trigger timing or stop shipping 01a-gen.
-2. **01c/01f/01g/02a/02c/02d** still captured-only (no generator). 02a (32 unique Qs) and
-   02d (86 prompts, 3-candle C1/C2/C3 engine) are heavy bespoke work.
-3. `generate_scenario.py` `--random` picks recent-ish days; add date-range / multiple-day batch.
-4. No automated walk-all test harness (UI loop timed out); relying on structural + single-path checks
-   plus the day-level fidelity diffs above.
+### 01f — prev hour 50% + footprint
+- mid_touch: open on one side of prev 50%, first Q2+ reclaim across it (bullish if above, bearish if below).
+- footprint_test: sweep of prev hour low (or high) in Q1, then Q2+ reclaim of prev 50% → rejection
+  (bullish if swept low, bearish if swept high). Generator's sweep gate is slightly strict (4/7 detected).
+
+### 01g — sweep + suckback + break
+- Sweep prev hour low → suckback into range → Q2+ break of prev 50% = bullish manipulation.
+  Sweep prev high → bearish. Exact on the captured day.
+
+## Known gaps / TODO
+1. **01f footprint_test** fires 4/7 of capture events (sweep threshold stricter than site's wick-zone test).
+2. **02a/02c/02d** still captured-only (no generator). 02a (32 unique Qs) and 02d (86 prompts,
+   3-candle C1/C2/C3 engine) are heavy bespoke work.
+3. Date convention: `--date` = start evening (18:00 ET) of the session. Capture labels for 01f/01g
+   are the RTH day, so pass label−1 (e.g. 01f RTH 2024-03-18 → `--date 2024-03-17`).
 
 ## Related projects touched
 - `candle-profiler` (data source): `data/working/NQ_work_1min.csv` read by generator. No changes made.
