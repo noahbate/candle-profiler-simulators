@@ -292,8 +292,8 @@ def gen_01f(bars, date_str):
         ph_open = prev[0]['open']; ph_close = prev[-1]['close']
         o = bars[i]['open']
         hour_end = min(i + 60, len(bars))
-        # footprint_test: genuine sweep BELOW prev hour low (or ABOVE prev high) in Q1 (bars 0-14),
-        # then Q2+ reclaim of prev 50% -> rejection. swept_low -> bullish, swept_high -> bearish.
+        # footprint_test: sweep of prev hour's LOWER wick (below prev_low) in Q1 -> bullish rejection;
+        # sweep of UPPER wick (above prev_high) in Q1 -> bearish rejection. Confirmed by Q2+ break of prev 50%.
         swept_low = any(bars[k]['low'] < ph_low for k in range(i, i + 15))
         swept_high = any(bars[k]['high'] > ph_high for k in range(i, i + 15))
         # mid_touch: open on one side of prev 50%, first Q2+ (bar i+15+) reclaim across it
@@ -323,30 +323,40 @@ def gen_01f(bars, date_str):
             prompts.append({'id': mkid(), 'triggerCandle': mt, 'type': 'multiple_choice',
                             'questionText': q.format(mid=f'{ph_mid:.2f}'), 'correctAnswer': correct,
                             'explanation': '', 'points': 10, 'answerOptions': opts, 'conceptTag': '01f'})
-        # footprint_test (fires at the reclaim bar, +1 to separate from mid_touch when both present)
-        if swept_low or swept_high:
-            fp_side = 'bull' if swept_low else 'bear'
+        # footprint_test: sweep of prev hour's LOWER wick (below prev_low) in Q1 -> bullish rejection;
+        # sweep of UPPER wick (above prev_high) in Q1 -> bearish rejection. Confirmed by Q2+ break of prev 50%.
+        # Fires independently of mid_touch (footprint confirmation = first Q2+ close across prev 50%).
+        fp_bar = None; fp_side = None
+        if swept_low:
+            fp_side = 'bull'
+            for k in range(i + 15, hour_end):
+                if bars[k]['close'] > ph_mid:
+                    fp_bar = k; break
+        elif swept_high:
+            fp_side = 'bear'
+            for k in range(i + 15, hour_end):
+                if bars[k]['close'] < ph_mid:
+                    fp_bar = k; break
+        if fp_bar is not None:
             q2, correct2 = T_01F_FP_BULL if fp_side == 'bull' else T_01F_FP_BEAR
-            wick_bottom = round(ph_low, 2); wick_top = round(ph_low + (ph_high - ph_low) * 0.2, 2)
-            fp_bar = mt + 1 if (mt is not None and mt + 1 < hour_end) else (mt if mt is not None else None)
-            if fp_bar is not None:
-                md2 = {'rejected': True, 'wick_top': wick_top, 'bar_close': round(bars[fp_bar]['close'], 2),
-                       'sub_concept': 'footprint_test', 'wick_bottom': wick_bottom,
-                       'footprint_bar': 0, 'prev_hour_low': round(ph_low, 2),
-                       'prev_hour_mid': round(ph_mid, 2), 'prev_hour_high': round(ph_high, 2),
-                       'prev_hour_color': 'red' if ph_close < ph_open else 'green',
-                       'confirmation_bar': fp_bar - i}
-                markers.append({'concept': '01f', 'triggerBarIdx': fp_bar,
-                                'triggerTime': bars[fp_bar]['time'],
-                                'nyHour': datetime.fromtimestamp(bars[fp_bar]['time'], tz=timezone.utc).hour,
-                                'question': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
-                                'metadata': md2})
-                decoy2 = 'Accepted wick zone — bearish continuation' if fp_side == 'bull' else 'Accepted wick zone — bullish continuation'
-                opts2 = [correct2, decoy2]; random.shuffle(opts2)
-                prompts.append({'id': mkid(), 'triggerCandle': fp_bar, 'type': 'multiple_choice',
-                                'questionText': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
-                                'correctAnswer': correct2, 'explanation': '', 'points': 10,
-                                'answerOptions': opts2, 'conceptTag': '01f'})
+            wick_bottom = round(ph_low, 2); wick_top = round(ph_high, 2)
+            md2 = {'rejected': True, 'wick_top': wick_top, 'bar_close': round(bars[fp_bar]['close'], 2),
+                   'sub_concept': 'footprint_test', 'wick_bottom': wick_bottom,
+                   'footprint_bar': 0, 'prev_hour_low': round(ph_low, 2),
+                   'prev_hour_mid': round(ph_mid, 2), 'prev_hour_high': round(ph_high, 2),
+                   'prev_hour_color': 'red' if ph_close < ph_open else 'green',
+                   'confirmation_bar': fp_bar - i}
+            markers.append({'concept': '01f', 'triggerBarIdx': fp_bar,
+                            'triggerTime': bars[fp_bar]['time'],
+                            'nyHour': datetime.fromtimestamp(bars[fp_bar]['time'], tz=timezone.utc).hour,
+                            'question': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
+                            'metadata': md2})
+            decoy2 = 'Accepted wick zone — bearish continuation' if fp_side == 'bull' else 'Accepted wick zone — bullish continuation'
+            opts2 = [correct2, decoy2]; random.shuffle(opts2)
+            prompts.append({'id': mkid(), 'triggerCandle': fp_bar, 'type': 'multiple_choice',
+                            'questionText': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
+                            'correctAnswer': correct2, 'explanation': '', 'points': 10,
+                            'answerOptions': opts2, 'conceptTag': '01f'})
         i += 60
     return prompts, markers
 

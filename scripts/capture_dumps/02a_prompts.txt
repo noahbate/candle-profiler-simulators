@@ -1,0 +1,813 @@
+# 02a — 2024-02-07 — 02a | 52 prompts | first bar 2024-02-06 23:00:00+00:00 | last bar 2024-02-07 21:59:00+00:00
+
+--- prompt 0 | id=7c63f6b7 | trigger idx=905 | time=2024-02-07T14:05:00+00:00 (UTC 14:05) | nyHour=10
+    bar: o=17749.25 h=17755.75 l=17749 c=17755.75
+    Q: An apex shows its hand in which hour of the three-hour block?
+    options: ["Hour 1", "Hour 2", "Hour 3", "All three equally"]
+    correct: 'Hour 2'
+    marker: {
+  "source": "Apex.md/The-apex-shows-its-hand-in-the-second-hour",
+  "variant": "concept_apex_hour",
+  "block_hour": 9,
+  "pool_index": 0,
+  "signal_type": "concept_apex_hour",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 1 | id=1db35828 | trigger idx=906 | time=2024-02-07T14:06:00+00:00 (UTC 14:06) | nyHour=10
+    bar: o=17755.75 h=17759.75 l=17754.5 c=17755.75
+    Q: How many three-hour line signatures are there?
+    options: ["1", "2", "4", "6"]
+    correct: '4'
+    marker: {
+  "source": "Three-Hour-Line.md/Four-Line-Signatures",
+  "variant": "concept_signature_count",
+  "block_hour": 9,
+  "pool_index": 5,
+  "signal_type": "concept_signature_count",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 2 | id=47e8e0a0 | trigger idx=920 | time=2024-02-07T14:20:00+00:00 (UTC 14:20) | nyHour=10
+    bar: o=17759.5 h=17766.25 l=17759.25 c=17764.75
+    Q: Q2 has taken out Q1's high. What is the instat classification?
+    options: ["Instat low \u2014 bullish. Q1 set the LOW, expect Q4 high", "Instat high \u2014 bearish. Q1 set the HIGH, expect Q4 low", "No instat \u2014 Q2 stayed within Q1 range"]
+    correct: 'Instat low — bullish. Q1 set the LOW, expect Q4 high'
+    marker: {
+  "q1_low": 17734.25,
+  "q1_high": 17762.75,
+  "variant": "instat_low",
+  "direction": "bullish",
+  "block_hour": 9,
+  "signal_type": "instat_low",
+  "concept_focus": "shared",
+  "final_classification": "other"
+}
+
+--- prompt 3 | id=6c64c040 | trigger idx=926 | time=2024-02-07T14:26:00+00:00 (UTC 14:26) | nyHour=10
+    bar: o=17768 h=17779.5 l=17767.25 c=17776.5
+    Q: Price broke above the 0-5 box by the RTH 0.10% threshold. What does this imply for the hour?
+    options: ["Hour's LOW is likely set \u2014 bullish momentum confirmed", "Hour's HIGH is likely set \u2014 bearish momentum", "False breakout \u2014 price will reverse"]
+    correct: "Hour's LOW is likely set — bullish momentum confirmed"
+    marker: {
+  "box_low": 17734.25,
+  "variant": "bp_breach_above",
+  "box_high": 17754.25,
+  "block_hour": 9,
+  "signal_type": "bp_breach_above",
+  "breach_level": 17772,
+  "breach_price": 17779.5,
+  "concept_focus": "module_01",
+  "threshold_session": "RTH",
+  "final_classification": "other"
+}
+
+--- prompt 4 | id=479c1771 | trigger idx=931 | time=2024-02-07T14:31:00+00:00 (UTC 14:31) | nyHour=10
+    bar: o=17761.75 h=17767.75 l=17751.25 c=17757.5
+    Q: Bullish instat already fired. Q3 just broke Q2's low. What does this mean?
+    options: ["Doji alert \u2014 structure weakening, reduce expansion expectations", "Normal pullback, thesis holds"]
+    correct: 'Doji alert — structure weakening, reduce expansion expectations'
+    marker: {
+  "q2_low": 17755.25,
+  "q2_high": 17779.5,
+  "variant": "doji_violation_bull",
+  "block_hour": 9,
+  "signal_type": "doji_violation_bull",
+  "concept_focus": "shared",
+  "q3_high_at_alert": 17778.25,
+  "final_classification": "other"
+}
+
+--- prompt 5 | id=5f48df83 | trigger idx=939 | time=2024-02-07T14:39:00+00:00 (UTC 14:39) | nyHour=10
+    bar: o=17742.75 h=17743.5 l=17725.5 c=17728.25
+    Q: Price first broke ABOVE the 0-5 box then confirmed in Q2 or later by closing back BELOW the box bottom. What does this pattern mean?
+    options: ["Real direction is down \u2014 the fake break planted the high", "Continuation higher", "Neutral \u2014 wait for more info"]
+    correct: 'Real direction is down — the fake break planted the high'
+    marker: {
+  "box_low": 17734.25,
+  "variant": "false_o5_break_down",
+  "box_high": 17754.25,
+  "block_hour": 9,
+  "signal_type": "false_o5_break_down",
+  "concept_focus": "module_01",
+  "break_bar_local": 5,
+  "reversal_bar_local": 39,
+  "final_classification": "other"
+}
+
+--- prompt 6 | id=472a8d37 | trigger idx=940 | time=2024-02-07T14:40:00+00:00 (UTC 14:40) | nyHour=10
+    bar: o=17729 h=17738 l=17723 c=17725.75
+    Q: In Q2 or later, price closed below prev hour midpoint coming from above. What does losing the mid suggest?
+    options: ["Lost prev hour midpoint \u2014 downside bias for this hour", "Breakout confirmed"]
+    correct: 'Lost prev hour midpoint — downside bias for this hour'
+    marker: {
+  "variant": "prev_mid_cross_down",
+  "block_hour": 9,
+  "signal_type": "prev_mid_cross_down",
+  "concept_focus": "module_01",
+  "prev_hour_low": 17705.5,
+  "prev_hour_mid": 17726,
+  "prev_hour_high": 17746.5,
+  "final_classification": "other"
+}
+
+--- prompt 7 | id=a7420063 | trigger idx=941 | time=2024-02-07T14:41:00+00:00 (UTC 14:41) | nyHour=10
+    bar: o=17726 h=17736.25 l=17723.5 c=17735.5
+    Q: Price swept prev hour high and has now confirmed in Q2 or later below prev hour mid. What pattern?
+    options: ["Sweep + suck back \u2014 bearish reversal pattern, expect downside", "Bullish continuation"]
+    correct: 'Sweep + suck back — bearish reversal pattern, expect downside'
+    marker: {
+  "variant": "prev_high_sweep_suckback",
+  "block_hour": 9,
+  "signal_type": "prev_high_sweep_suckback",
+  "concept_focus": "module_01",
+  "prev_hour_mid": 17726,
+  "prev_hour_high": 17746.5,
+  "sweep_bar_local": 2,
+  "final_classification": "other"
+}
+
+--- prompt 8 | id=7d222326 | trigger idx=948 | time=2024-02-07T14:48:00+00:00 (UTC 14:48) | nyHour=10
+    bar: o=17740.25 h=17750.75 l=17740 c=17749.5
+    Q: After the sweep + suck back, price pushed back above prev hour high. What now?
+    options: ["Sweep reversal failed \u2014 original bullish intent reasserted", "Bearish thesis still holds"]
+    correct: 'Sweep reversal failed — original bullish intent reasserted'
+    marker: {
+  "variant": "failed_prev_high_sweep",
+  "block_hour": 9,
+  "signal_type": "failed_prev_high_sweep",
+  "concept_focus": "module_01",
+  "origin_bar_idx": 940,
+  "origin_signal_type": "prev_high_sweep_suckback",
+  "final_classification": "other"
+}
+
+--- prompt 9 | id=a14c2a6f | trigger idx=949 | time=2024-02-07T14:49:00+00:00 (UTC 14:49) | nyHour=10
+    bar: o=17749.25 h=17761.5 l=17748.75 c=17757
+    Q: After the false break down, price broke ABOVE the 0-5 box again. What now?
+    options: ["Initial bullish intent reasserted \u2014 false break itself failed", "Bearish thesis still holds"]
+    correct: 'Initial bullish intent reasserted — false break itself failed'
+    marker: {
+  "variant": "failed_false_o5_break_down",
+  "block_hour": 9,
+  "signal_type": "failed_false_o5_break_down",
+  "concept_focus": "module_01",
+  "origin_bar_idx": 939,
+  "origin_signal_type": "false_o5_break_down",
+  "final_classification": "other"
+}
+
+--- prompt 10 | id=4deb350c | trigger idx=959 | time=2024-02-07T14:59:00+00:00 (UTC 14:59) | nyHour=10
+    bar: o=17733.5 h=17748.25 l=17731.25 c=17745.75
+    Q: Hour 1 just closed. Which three-hour-line signature (if any) appeared during this hour?
+    options: ["Perfect line \u2014 minute 1 planted the extreme", "First five-minute line \u2014 0-5 box planted the extreme", "False O5 break \u2014 fake direction reversed into a line", "No clear line signature \u2014 apex more likely"]
+    correct: 'False O5 break — fake direction reversed into a line'
+    marker: {
+  "source": "Three-Hour-Line.md/Line-Signatures",
+  "variant": "h1_signature_check",
+  "block_hour": 9,
+  "signal_type": "h1_signature_check",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 11 | id=d266575d | trigger idx=960 | time=2024-02-07T15:00:00+00:00 (UTC 15:00) | nyHour=11
+    bar: o=17745.75 h=17751.75 l=17744.5 c=17749
+    Q: Hour 1 just closed. Where did H1 plant its HIGH and LOW? What does that say about line vs apex?
+    options: ["Bullish line \u2014 high in Q4, low in Q1 (4-1): Q1 planted the LOW, Q4 targeted the high", "Bearish line \u2014 high in Q1, low in Q4 (1-4): Q1 planted the HIGH, Q4 targeted the low", "Apex \u2014 Q2 or Q3 planted an extreme (twos-and-threes); fade extremes", "Mixed \u2014 extremes don't follow a clean fours-and-ones or twos-and-threes pattern"]
+    correct: 'Apex — Q2 or Q3 planted an extreme (twos-and-threes); fade extremes'
+    marker: {
+  "source": "Quarters.md/Fours-and-Ones/Twos-and-Threes",
+  "variant": "h1_quarter_read",
+  "block_hour": 9,
+  "low_quarter": 4,
+  "signal_type": "h1_quarter_read",
+  "high_quarter": 2,
+  "concept_focus": "line_apex",
+  "quarter_signature": "2-4",
+  "final_classification": "other"
+}
+
+--- prompt 12 | id=be4bbb6a | trigger idx=961 | time=2024-02-07T15:01:00+00:00 (UTC 15:01) | nyHour=11
+    bar: o=17749.25 h=17753.75 l=17738.75 c=17749.25
+    Q: H2 just opened. Where in H1's range did the open land, and what does this open suggest?
+    options: ["Near H1 high \u2014 higher probability of upside continuation or sweep + reversal", "Above H1 midpoint \u2014 slight bullish lean, watch 0-5 box for confirmation", "Below H1 midpoint \u2014 slight bearish lean, watch 0-5 box for confirmation", "Near H1 low \u2014 higher probability of downside continuation or sweep + reversal"]
+    correct: 'Below H1 midpoint — slight bearish lean, watch 0-5 box for confirmation'
+    marker: {
+  "variant": "h2_open_quadrant",
+  "prev_low": 17718.75,
+  "quadrant": "lower-mid",
+  "prev_high": 17779.5,
+  "block_hour": 9,
+  "open_price": 17745.75,
+  "signal_type": "h2_open_quadrant",
+  "concept_focus": "shared",
+  "final_classification": "other"
+}
+
+--- prompt 13 | id=192705e4 | trigger idx=962 | time=2024-02-07T15:02:00+00:00 (UTC 15:02) | nyHour=11
+    bar: o=17749.25 h=17750.75 l=17735.25 c=17738.25
+    Q: Hour 2 just opened. The apex shows its hand in H2. Which two signatures should you watch for to confirm an apex?
+    options: ["Sweeper of H1 extreme + Q2 or Q3 quarter break (the two apex signatures)", "Perfect line + first-five-minute line", "Doji + instat", "Footprint rejection + 0-5 box breach"]
+    correct: 'Sweeper of H1 extreme + Q2 or Q3 quarter break (the two apex signatures)'
+    marker: {
+  "source": "Apex.md/Two-Primary-Apex-Signatures",
+  "variant": "h2_open_apex_watch",
+  "block_hour": 9,
+  "signal_type": "h2_open_apex_watch",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 14 | id=6fbef38f | trigger idx=971 | time=2024-02-07T15:11:00+00:00 (UTC 15:11) | nyHour=11
+    bar: o=17762.25 h=17774 l=17759.75 c=17768
+    Q: Price broke above the 0-5 box by the RTH 0.10% threshold. What does this imply for the hour?
+    options: ["Hour's LOW is likely set \u2014 bullish momentum confirmed", "Hour's HIGH is likely set \u2014 bearish momentum", "False breakout \u2014 price will reverse"]
+    correct: "Hour's LOW is likely set — bullish momentum confirmed"
+    marker: {
+  "box_low": 17725.25,
+  "variant": "bp_breach_above",
+  "box_high": 17753.75,
+  "block_hour": 9,
+  "signal_type": "bp_breach_above",
+  "breach_level": 17771.5,
+  "breach_price": 17774,
+  "concept_focus": "module_01",
+  "threshold_session": "RTH",
+  "final_classification": "other"
+}
+
+--- prompt 15 | id=9201e9f8 | trigger idx=975 | time=2024-02-07T15:15:00+00:00 (UTC 15:15) | nyHour=11
+    bar: o=17807.25 h=17814.25 l=17802.25 c=17809
+    Q: Q2 has taken out Q1's high. What is the instat classification?
+    options: ["Instat low \u2014 bullish. Q1 set the LOW, expect Q4 high", "Instat high \u2014 bearish. Q1 set the HIGH, expect Q4 low", "No instat \u2014 Q2 stayed within Q1 range"]
+    correct: 'Instat low — bullish. Q1 set the LOW, expect Q4 high'
+    marker: {
+  "q1_low": 17725.25,
+  "q1_high": 17813.25,
+  "variant": "instat_low",
+  "direction": "bullish",
+  "block_hour": 9,
+  "signal_type": "instat_low",
+  "concept_focus": "shared",
+  "final_classification": "other"
+}
+
+--- prompt 16 | id=b791cf50 | trigger idx=990 | time=2024-02-07T15:30:00+00:00 (UTC 15:30) | nyHour=11
+    bar: o=17865 h=17869.75 l=17851 c=17857.5
+    Q: Six quarters into the block, the trend has been UP. Q3 of H2 is now starting. What would put us on APEX ALERT here?
+    options: ["Apex ALERT triggers IF Q3 or Q4 breaks DOWNWARD (opposite of the 6-quarter trend); confirmation comes later if price breaks the block opening", "Apex ALERT triggers IF Q3 or Q4 breaks UPWARD (opposite of the 6-quarter trend); confirmation comes later if price breaks the block opening", "Line continues \u2014 Q3/Q4 break just adds momentum", "Doji alert \u2014 wait for H3 to confirm"]
+    correct: 'Apex ALERT triggers IF Q3 or Q4 breaks DOWNWARD (opposite of the 6-quarter trend); confirmation comes later if price breaks the block opening'
+    marker: {
+  "source": "Apex.md/Quarter-Break-In-Hour-Two",
+  "variant": "h2_quarter_break_apex_watch",
+  "block_hour": 9,
+  "signal_type": "h2_quarter_break_apex_watch",
+  "concept_focus": "line_apex",
+  "six_quarter_trend": "up",
+  "final_classification": "other"
+}
+
+--- prompt 17 | id=915fadf1 | trigger idx=1005 | time=2024-02-07T15:45:00+00:00 (UTC 15:45) | nyHour=11
+    bar: o=17854.25 h=17856.75 l=17847.25 c=17852.75
+    Q: Q3 of H2 didn't break the UP trend. Q4 of H2 just started. What's the late-apex ALERT criterion?
+    options: ["Q4 must break DOWN below the running quarterly lows to trigger the apex alert (opposite of the 7-quarter trend)", "Q4 must break UP above the running quarterly highs to trigger the apex alert (opposite of the 7-quarter trend)", "Q4 just continues the line \u2014 no apex possible after Q3", "Q4 has no diagnostic value"]
+    correct: 'Q4 must break DOWN below the running quarterly lows to trigger the apex alert (opposite of the 7-quarter trend)'
+    marker: {
+  "source": "Apex.md/Quarter-Break-In-Hour-Two",
+  "variant": "h2_q4_late_break_watch",
+  "block_hour": 9,
+  "signal_type": "h2_q4_late_break_watch",
+  "concept_focus": "line_apex",
+  "seven_quarter_trend": "up",
+  "final_classification": "other"
+}
+
+--- prompt 18 | id=b8dd2af8 | trigger idx=1019 | time=2024-02-07T15:59:00+00:00 (UTC 15:59) | nyHour=11
+    bar: o=17839.75 h=17843.25 l=17831.25 c=17833.5
+    Q: Hours 1 and 2 are complete. Based ONLY on what's happened so far (no H3 yet), what's the most likely classification?
+    options: ["Bullish line forming \u2014 H1 line signature + H2 continuation up", "Bearish line forming \u2014 H1 line signature + H2 continuation down", "Apex forming \u2014 H2 swept both H1 sides (sweeper signature)", "Apex forming \u2014 H1 quarter pattern was twos-and-threes", "Ambiguous \u2014 wait for H3 to commit"]
+    correct: 'Apex forming — H1 quarter pattern was twos-and-threes'
+    marker: {
+  "source": "Three-Hour-Line.md/Apex.md",
+  "variant": "h2_close_commit",
+  "h1_setup": "apex_likely",
+  "block_hour": 9,
+  "signal_type": "h2_close_commit",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 19 | id=1efea7c9 | trigger idx=1020 | time=2024-02-07T16:00:00+00:00 (UTC 16:00) | nyHour=12
+    bar: o=17833.5 h=17837.25 l=17811.25 c=17816
+    Q: Hour 3 just opened. What's the 'third-hour effect' (3HE) — what should you watch for now?
+    options: ["Either the line extends OR the third-hour effect retraces toward the block-open / 9:30 area \u2014 depends on H1+H2 setup", "H3 always continues the H2 direction \u2014 no other outcome", "H3 always reverses against H2 \u2014 that's what 3HE means", "H3 has no diagnostic value once H2 closes"]
+    correct: 'Either the line extends OR the third-hour effect retraces toward the block-open / 9:30 area — depends on H1+H2 setup'
+    marker: {
+  "source": "RE-2026-02-20",
+  "variant": "h3_open_3he_watch",
+  "block_hour": 9,
+  "signal_type": "h3_open_3he_watch",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 20 | id=e2cf2bfb | trigger idx=1021 | time=2024-02-07T16:01:00+00:00 (UTC 16:01) | nyHour=12
+    bar: o=17816 h=17819.25 l=17809.25 c=17816.75
+    Q: H3 just opened. Where in H2's range did the open land, and what does this open suggest?
+    options: ["Near H2 high \u2014 higher probability of upside continuation or sweep + reversal", "Above H2 midpoint \u2014 slight bullish lean, watch 0-5 box for confirmation", "Below H2 midpoint \u2014 slight bearish lean, watch 0-5 box for confirmation", "Near H2 low \u2014 higher probability of downside continuation or sweep + reversal"]
+    correct: 'Above H2 midpoint — slight bullish lean, watch 0-5 box for confirmation'
+    marker: {
+  "variant": "h3_open_quadrant",
+  "prev_low": 17725.25,
+  "quadrant": "upper-mid",
+  "prev_high": 17875.5,
+  "block_hour": 9,
+  "open_price": 17833.5,
+  "signal_type": "h3_open_quadrant",
+  "concept_focus": "shared",
+  "final_classification": "other"
+}
+
+--- prompt 21 | id=f339fe67 | trigger idx=1054 | time=2024-02-07T16:34:00+00:00 (UTC 16:34) | nyHour=12
+    bar: o=17815.75 h=17818.5 l=17803.75 c=17807.75
+    Q: Price first broke ABOVE the 0-5 box then confirmed in Q2 or later by closing back BELOW the box bottom. What does this pattern mean?
+    options: ["Real direction is down \u2014 the fake break planted the high", "Continuation higher", "Neutral \u2014 wait for more info"]
+    correct: 'Real direction is down — the fake break planted the high'
+    marker: {
+  "box_low": 17809.25,
+  "variant": "false_o5_break_down",
+  "box_high": 17837.25,
+  "block_hour": 9,
+  "signal_type": "false_o5_break_down",
+  "concept_focus": "module_01",
+  "break_bar_local": 7,
+  "reversal_bar_local": 34,
+  "final_classification": "other"
+}
+
+--- prompt 22 | id=591578fb | trigger idx=1065 | time=2024-02-07T16:45:00+00:00 (UTC 16:45) | nyHour=12
+    bar: o=17826.75 h=17833 l=17826.5 c=17829.5
+    Q: Q4 of H3 is starting. Based on the line/apex framework, how does Q4 typically resolve?
+    options: ["In a line: Q4 targets the opposite of Q1's extreme (fours-and-ones). In an apex: Q4 mean reverts toward the H3 midpoint.", "Q4 always extends past Q3's extreme regardless of classification", "Q4 always closes flat \u2014 it is a 'doji quarter'", "Q4 has no predictable behavior \u2014 random"]
+    correct: "In a line: Q4 targets the opposite of Q1's extreme (fours-and-ones). In an apex: Q4 mean reverts toward the H3 midpoint."
+    marker: {
+  "source": "Three-Hour-Line.md/Q1-plants-Q4-targets",
+  "variant": "h3_q4_resolution_watch",
+  "block_hour": 9,
+  "signal_type": "h3_q4_resolution_watch",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 23 | id=a546574a | trigger idx=1070 | time=2024-02-07T16:50:00+00:00 (UTC 16:50) | nyHour=12
+    bar: o=17821.5 h=17839 l=17821 c=17837.25
+    Q: After the false break down, price broke ABOVE the 0-5 box again. What now?
+    options: ["Initial bullish intent reasserted \u2014 false break itself failed", "Bearish thesis still holds"]
+    correct: 'Initial bullish intent reasserted — false break itself failed'
+    marker: {
+  "variant": "failed_false_o5_break_down",
+  "block_hour": 9,
+  "signal_type": "failed_false_o5_break_down",
+  "concept_focus": "module_01",
+  "origin_bar_idx": 1054,
+  "origin_signal_type": "false_o5_break_down",
+  "final_classification": "other"
+}
+
+--- prompt 24 | id=9502bc19 | trigger idx=1071 | time=2024-02-07T16:51:00+00:00 (UTC 16:51) | nyHour=12
+    bar: o=17837.75 h=17838.75 l=17833.5 c=17834.75
+    Q: We're 50 bars into H3. Can you 'draw a line' through the three hourly candles?
+    options: ["Yes \u2014 bullish line is drawable (progressive higher highs, no violations)", "Yes \u2014 bearish line is drawable (progressive lower lows, no violations)", "No \u2014 structure broken; this is an apex"]
+    correct: 'No — structure broken; this is an apex'
+    marker: {
+  "source": "BLUF/If-you-can-draw-a-line",
+  "variant": "h3_drawable_line",
+  "block_hour": 9,
+  "signal_type": "h3_drawable_line",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 25 | id=7abe7993 | trigger idx=1072 | time=2024-02-07T16:52:00+00:00 (UTC 16:52) | nyHour=12
+    bar: o=17834.5 h=17838.75 l=17832 c=17832.5
+    Q: Through bar 50 of H3, every close has stayed above H2's midpoint with no retrace. What does this signal?
+    options: ["Strong bullish line \u2014 no retrace through H2 mid; expect H3 close at or near the extreme", "Apex coiling \u2014 break is imminent in either direction", "Random walk \u2014 no diagnostic value", "Doji hour \u2014 close near open expected"]
+    correct: 'Strong bullish line — no retrace through H2 mid; expect H3 close at or near the extreme'
+    marker: {
+  "h2_mid": 17800.38,
+  "source": "Three-Hour-Line.md/Hours-two-and-three-continue",
+  "variant": "h3_strong_line_no_pullback",
+  "direction": "bullish",
+  "block_hour": 9,
+  "signal_type": "h3_strong_line_no_pullback",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 26 | id=f665e3ca | trigger idx=1079 | time=2024-02-07T16:59:00+00:00 (UTC 16:59) | nyHour=12
+    bar: o=17845.75 h=17847.5 l=17843.75 c=17844.5
+    Q: Is this 9:00-12:00 three-hour block a Line or Apex? Bullish or bearish?
+    options: ["Bullish line", "Bearish line", "Bullish apex", "Bearish apex", "Other \u2014 does not match a clean line or apex"]
+    correct: 'Other — does not match a clean line or apex'
+    marker: {
+  "variant": "final_classification",
+  "block_hour": 9,
+  "signal_type": "final_classification",
+  "concept_focus": "line_apex",
+  "classification": "other",
+  "final_classification": "other"
+}
+
+--- prompt 27 | id=ebfc60a6 | trigger idx=1080 | time=2024-02-07T17:00:00+00:00 (UTC 17:00) | nyHour=13
+    bar: o=17844.25 h=17848.25 l=17838 c=17839.5
+    Q: Block close. Did the third-hour effect play out as expected — extension away from block open, or retrace back to it?
+    options: ["3HE played out as MEAN REVERSION \u2014 close near block open (apex-like)", "3HE played out as EXTENSION \u2014 close significantly above block open (line-like)", "3HE played out as EXTENSION \u2014 close significantly below block open (line-like)"]
+    correct: '3HE played out as EXTENSION — close significantly above block open (line-like)'
+    marker: {
+  "source": "RE-2026-02-20+01-29+03-04",
+  "variant": "h3_close_3he_resolution",
+  "h3_close": 17844.5,
+  "drift_pct": 0.613,
+  "block_hour": 9,
+  "block_open": 17735.75,
+  "signal_type": "h3_close_3he_resolution",
+  "concept_focus": "line_apex",
+  "final_classification": "other"
+}
+
+--- prompt 28 | id=32d1b358 | trigger idx=1085 | time=2024-02-07T17:05:00+00:00 (UTC 17:05) | nyHour=13
+    bar: o=17849 h=17850.5 l=17840.5 c=17846
+    Q: Complete the rule: 'Apexes respect ___, lines respect ___'
+    options: ["extremes / midpoints", "midpoints / extremes", "the open / the close", "volume / time"]
+    correct: 'extremes / midpoints'
+    marker: {
+  "source": "Apex.md/Key-Quotes",
+  "variant": "concept_respect_rule",
+  "block_hour": 12,
+  "pool_index": 1,
+  "signal_type": "concept_respect_rule",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 29 | id=dd75157a | trigger idx=1086 | time=2024-02-07T17:06:00+00:00 (UTC 17:06) | nyHour=13
+    bar: o=17846 h=17847.75 l=17841.5 c=17842
+    Q: An apex shows its hand in which hour of the three-hour block?
+    options: ["Hour 1", "Hour 2", "Hour 3", "All three equally"]
+    correct: 'Hour 2'
+    marker: {
+  "source": "Apex.md/The-apex-shows-its-hand-in-the-second-hour",
+  "variant": "concept_apex_hour",
+  "block_hour": 12,
+  "pool_index": 0,
+  "signal_type": "concept_apex_hour",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 30 | id=09a7dc95 | trigger idx=1097 | time=2024-02-07T17:17:00+00:00 (UTC 17:17) | nyHour=13
+    bar: o=17845 h=17853.75 l=17843.5 c=17849.75
+    Q: Q2 has taken out Q1's high. What is the instat classification?
+    options: ["Instat low \u2014 bullish. Q1 set the LOW, expect Q4 high", "Instat high \u2014 bearish. Q1 set the HIGH, expect Q4 low", "No instat \u2014 Q2 stayed within Q1 range"]
+    correct: 'Instat low — bullish. Q1 set the LOW, expect Q4 high'
+    marker: {
+  "q1_low": 17824.5,
+  "q1_high": 17852,
+  "variant": "instat_low",
+  "direction": "bullish",
+  "block_hour": 12,
+  "signal_type": "instat_low",
+  "concept_focus": "shared",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 31 | id=6119dd74 | trigger idx=1104 | time=2024-02-07T17:24:00+00:00 (UTC 17:24) | nyHour=13
+    bar: o=17831 h=17835.5 l=17825.75 c=17826.75
+    Q: In Q2 or later, price closed below prev hour midpoint coming from above. What does losing the mid suggest?
+    options: ["Lost prev hour midpoint \u2014 downside bias for this hour", "Breakout confirmed"]
+    correct: 'Lost prev hour midpoint — downside bias for this hour'
+    marker: {
+  "variant": "prev_mid_cross_down",
+  "block_hour": 12,
+  "signal_type": "prev_mid_cross_down",
+  "concept_focus": "module_01",
+  "prev_hour_low": 17802.25,
+  "prev_hour_mid": 17828.125,
+  "prev_hour_high": 17854,
+  "final_classification": "bullish_line"
+}
+
+--- prompt 32 | id=b268651b | trigger idx=1106 | time=2024-02-07T17:26:00+00:00 (UTC 17:26) | nyHour=13
+    bar: o=17822.75 h=17825.5 l=17816.75 c=17818.25
+    Q: Price broke below the 0-5 box by the RTH 0.10% threshold. What does this imply for the hour?
+    options: ["Hour's HIGH is likely set \u2014 bearish momentum confirmed", "Hour's LOW is likely set \u2014 bullish momentum", "False breakout \u2014 price will reverse"]
+    correct: "Hour's HIGH is likely set — bearish momentum confirmed"
+    marker: {
+  "box_low": 17838,
+  "variant": "bp_breach_below",
+  "box_high": 17852,
+  "block_hour": 12,
+  "signal_type": "bp_breach_below",
+  "breach_level": 17820.16,
+  "breach_price": 17816.75,
+  "concept_focus": "module_01",
+  "threshold_session": "RTH",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 33 | id=9184e261 | trigger idx=1110 | time=2024-02-07T17:30:00+00:00 (UTC 17:30) | nyHour=13
+    bar: o=17818.75 h=17818.75 l=17803.75 c=17807.5
+    Q: Bullish instat already fired. Q3 just broke Q2's low. What does this mean?
+    options: ["Doji alert \u2014 structure weakening, reduce expansion expectations", "Normal pullback, thesis holds"]
+    correct: 'Doji alert — structure weakening, reduce expansion expectations'
+    marker: {
+  "q2_low": 17816.25,
+  "q2_high": 17853.75,
+  "variant": "doji_violation_bull",
+  "block_hour": 12,
+  "signal_type": "doji_violation_bull",
+  "concept_focus": "shared",
+  "q3_high_at_alert": 17818.75,
+  "final_classification": "bullish_line"
+}
+
+--- prompt 34 | id=11bc75b5 | trigger idx=1139 | time=2024-02-07T17:59:00+00:00 (UTC 17:59) | nyHour=13
+    bar: o=17814.75 h=17820.5 l=17812.5 c=17819
+    Q: After the doji alert, price has recovered past Q3's high. What now?
+    options: ["Failed doji \u2014 structure recovered, healthy candle expected", "Doji confirmed"]
+    correct: 'Failed doji — structure recovered, healthy candle expected'
+    marker: {
+  "variant": "failed_doji_bull",
+  "block_hour": 12,
+  "signal_type": "failed_doji_bull",
+  "concept_focus": "shared",
+  "origin_bar_idx": 1110,
+  "origin_signal_type": "doji_violation_bull",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 35 | id=00aceee3 | trigger idx=1140 | time=2024-02-07T18:00:00+00:00 (UTC 18:00) | nyHour=14
+    bar: o=17819 h=17820.5 l=17804.25 c=17805.5
+    Q: Hour 1 just closed. Where did H1 plant its HIGH and LOW? What does that say about line vs apex?
+    options: ["Bullish line \u2014 high in Q4, low in Q1 (4-1): Q1 planted the LOW, Q4 targeted the high", "Bearish line \u2014 high in Q1, low in Q4 (1-4): Q1 planted the HIGH, Q4 targeted the low", "Apex \u2014 Q2 or Q3 planted an extreme (twos-and-threes); fade extremes", "Mixed \u2014 extremes don't follow a clean fours-and-ones or twos-and-threes pattern"]
+    correct: 'Apex — Q2 or Q3 planted an extreme (twos-and-threes); fade extremes'
+    marker: {
+  "source": "Quarters.md/Fours-and-Ones/Twos-and-Threes",
+  "variant": "h1_quarter_read",
+  "block_hour": 12,
+  "low_quarter": 3,
+  "signal_type": "h1_quarter_read",
+  "high_quarter": 2,
+  "concept_focus": "line_apex",
+  "quarter_signature": "2-3",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 36 | id=2c44f4ee | trigger idx=1141 | time=2024-02-07T18:01:00+00:00 (UTC 18:01) | nyHour=14
+    bar: o=17806 h=17839.5 l=17802 c=17835.75
+    Q: Hour 1 just closed. Which three-hour-line signature (if any) appeared during this hour?
+    options: ["Perfect line \u2014 minute 1 planted the extreme", "First five-minute line \u2014 0-5 box planted the extreme", "False O5 break \u2014 fake direction reversed into a line", "No clear line signature \u2014 apex more likely"]
+    correct: 'False O5 break — fake direction reversed into a line'
+    marker: {
+  "source": "Three-Hour-Line.md/Line-Signatures",
+  "variant": "h1_signature_check",
+  "block_hour": 12,
+  "signal_type": "h1_signature_check",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 37 | id=955438c7 | trigger idx=1142 | time=2024-02-07T18:02:00+00:00 (UTC 18:02) | nyHour=14
+    bar: o=17835.25 h=17835.5 l=17808.5 c=17813.5
+    Q: H2 just opened. Where in H1's range did the open land, and what does this open suggest?
+    options: ["Near H1 high \u2014 higher probability of upside continuation or sweep + reversal", "Above H1 midpoint \u2014 slight bullish lean, watch 0-5 box for confirmation", "Below H1 midpoint \u2014 slight bearish lean, watch 0-5 box for confirmation", "Near H1 low \u2014 higher probability of downside continuation or sweep + reversal"]
+    correct: 'Above H1 midpoint — slight bullish lean, watch 0-5 box for confirmation'
+    marker: {
+  "variant": "h2_open_quadrant",
+  "prev_low": 17779.25,
+  "quadrant": "upper-mid",
+  "prev_high": 17853.75,
+  "block_hour": 12,
+  "open_price": 17819,
+  "signal_type": "h2_open_quadrant",
+  "concept_focus": "shared",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 38 | id=29ba0b33 | trigger idx=1143 | time=2024-02-07T18:03:00+00:00 (UTC 18:03) | nyHour=14
+    bar: o=17813.75 h=17821.5 l=17809 c=17816.75
+    Q: Hour 2 just opened. The apex shows its hand in H2. Which two signatures should you watch for to confirm an apex?
+    options: ["Sweeper of H1 extreme + Q2 or Q3 quarter break (the two apex signatures)", "Perfect line + first-five-minute line", "Doji + instat", "Footprint rejection + 0-5 box breach"]
+    correct: 'Sweeper of H1 extreme + Q2 or Q3 quarter break (the two apex signatures)'
+    marker: {
+  "source": "Apex.md/Two-Primary-Apex-Signatures",
+  "variant": "h2_open_apex_watch",
+  "block_hour": 12,
+  "signal_type": "h2_open_apex_watch",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 39 | id=f54f27c5 | trigger idx=1165 | time=2024-02-07T18:25:00+00:00 (UTC 18:25) | nyHour=14
+    bar: o=17830 h=17842.5 l=17829.25 c=17842.25
+    Q: Q2 has taken out Q1's high. What is the instat classification?
+    options: ["Instat low \u2014 bullish. Q1 set the LOW, expect Q4 high", "Instat high \u2014 bearish. Q1 set the HIGH, expect Q4 low", "No instat \u2014 Q2 stayed within Q1 range"]
+    correct: 'Instat low — bullish. Q1 set the LOW, expect Q4 high'
+    marker: {
+  "q1_low": 17788,
+  "q1_high": 17839.5,
+  "variant": "instat_low",
+  "direction": "bullish",
+  "block_hour": 12,
+  "signal_type": "instat_low",
+  "concept_focus": "shared",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 40 | id=594adb90 | trigger idx=1199 | time=2024-02-07T18:59:00+00:00 (UTC 18:59) | nyHour=14
+    bar: o=17849.25 h=17853.25 l=17848.5 c=17852.25
+    Q: Hours 1 and 2 are complete. Based ONLY on what's happened so far (no H3 yet), what's the most likely classification?
+    options: ["Bullish line forming \u2014 H1 line signature + H2 continuation up", "Bearish line forming \u2014 H1 line signature + H2 continuation down", "Apex forming \u2014 H2 swept both H1 sides (sweeper signature)", "Apex forming \u2014 H1 quarter pattern was twos-and-threes", "Ambiguous \u2014 wait for H3 to commit"]
+    correct: 'Apex forming — H1 quarter pattern was twos-and-threes'
+    marker: {
+  "source": "Three-Hour-Line.md/Apex.md",
+  "variant": "h2_close_commit",
+  "h1_setup": "apex_likely",
+  "block_hour": 12,
+  "signal_type": "h2_close_commit",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 41 | id=6cf94f79 | trigger idx=1200 | time=2024-02-07T19:00:00+00:00 (UTC 19:00) | nyHour=15
+    bar: o=17852 h=17857.25 l=17850 c=17855
+    Q: H3 just opened. Where in H2's range did the open land, and what does this open suggest?
+    options: ["Near H2 high \u2014 higher probability of upside continuation or sweep + reversal", "Above H2 midpoint \u2014 slight bullish lean, watch 0-5 box for confirmation", "Below H2 midpoint \u2014 slight bearish lean, watch 0-5 box for confirmation", "Near H2 low \u2014 higher probability of downside continuation or sweep + reversal"]
+    correct: 'Near H2 high — higher probability of upside continuation or sweep + reversal'
+    marker: {
+  "variant": "h3_open_quadrant",
+  "prev_low": 17788,
+  "quadrant": "upper",
+  "prev_high": 17859,
+  "block_hour": 12,
+  "open_price": 17852,
+  "signal_type": "h3_open_quadrant",
+  "concept_focus": "shared",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 42 | id=f5d0b996 | trigger idx=1201 | time=2024-02-07T19:01:00+00:00 (UTC 19:01) | nyHour=15
+    bar: o=17855.5 h=17856.25 l=17849 c=17851.25
+    Q: Hour 3 just opened. What's the 'third-hour effect' (3HE) — what should you watch for now?
+    options: ["Either the line extends OR the third-hour effect retraces toward the block-open / 9:30 area \u2014 depends on H1+H2 setup", "H3 always continues the H2 direction \u2014 no other outcome", "H3 always reverses against H2 \u2014 that's what 3HE means", "H3 has no diagnostic value once H2 closes"]
+    correct: 'Either the line extends OR the third-hour effect retraces toward the block-open / 9:30 area — depends on H1+H2 setup'
+    marker: {
+  "source": "RE-2026-02-20",
+  "variant": "h3_open_3he_watch",
+  "block_hour": 12,
+  "signal_type": "h3_open_3he_watch",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 43 | id=edbdfc76 | trigger idx=1206 | time=2024-02-07T19:06:00+00:00 (UTC 19:06) | nyHour=15
+    bar: o=17850.25 h=17850.75 l=17840 c=17846.75
+    Q: H1+H2 set up a bullish line, but H3 just broke its 0-5 box low. In the line/apex framework, what is this?
+    options: ["Third-hour effect retrace \u2014 line may exhaust before close; watch for return to block midpoint or open zone", "Normal pullback \u2014 bullish line continues, H3 closes near the high"]
+    correct: 'Third-hour effect retrace — line may exhaust before close; watch for return to block midpoint or open zone'
+    marker: {
+  "box_low": 17841.25,
+  "variant": "h3_counter_break_bear",
+  "box_high": 17857.25,
+  "block_hour": 12,
+  "signal_type": "h3_counter_break_bear",
+  "concept_focus": "shared",
+  "classification": "bullish_line",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 44 | id=1812815c | trigger idx=1212 | time=2024-02-07T19:12:00+00:00 (UTC 19:12) | nyHour=15
+    bar: o=17848.75 h=17853 l=17844.25 c=17852.5
+    Q: After the counter-direction break, price closed back above H3's midpoint. What now?
+    options: ["Failed counter break \u2014 bullish thesis reasserted", "Counter break still valid"]
+    correct: 'Failed counter break — bullish thesis reasserted'
+    marker: {
+  "variant": "failed_h3_counter_bear",
+  "block_hour": 12,
+  "signal_type": "failed_h3_counter_bear",
+  "concept_focus": "shared",
+  "origin_bar_idx": 1206,
+  "origin_signal_type": "h3_counter_break_bear",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 45 | id=5bd4b2c9 | trigger idx=1219 | time=2024-02-07T19:19:00+00:00 (UTC 19:19) | nyHour=15
+    bar: o=17846 h=17846.25 l=17838.25 c=17838.75
+    Q: Q2 has taken out Q1's low. What is the instat classification?
+    options: ["Instat high \u2014 bearish. Q1 set the HIGH, expect Q4 low", "Instat low \u2014 bullish. Q1 set the LOW, expect Q4 high", "No instat \u2014 Q2 stayed within Q1 range"]
+    correct: 'Instat high — bearish. Q1 set the HIGH, expect Q4 low'
+    marker: {
+  "q1_low": 17840,
+  "q1_high": 17857.25,
+  "variant": "instat_high",
+  "direction": "bearish",
+  "block_hour": 12,
+  "signal_type": "instat_high",
+  "concept_focus": "shared",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 46 | id=20c1ec81 | trigger idx=1245 | time=2024-02-07T19:45:00+00:00 (UTC 19:45) | nyHour=15
+    bar: o=17838.75 h=17842.5 l=17837 c=17841.75
+    Q: Q4 of H3 is starting. Based on the line/apex framework, how does Q4 typically resolve?
+    options: ["In a line: Q4 targets the opposite of Q1's extreme (fours-and-ones). In an apex: Q4 mean reverts toward the H3 midpoint.", "Q4 always extends past Q3's extreme regardless of classification", "Q4 always closes flat \u2014 it is a 'doji quarter'", "Q4 has no predictable behavior \u2014 random"]
+    correct: "In a line: Q4 targets the opposite of Q1's extreme (fours-and-ones). In an apex: Q4 mean reverts toward the H3 midpoint."
+    marker: {
+  "source": "Three-Hour-Line.md/Q1-plants-Q4-targets",
+  "variant": "h3_q4_resolution_watch",
+  "block_hour": 12,
+  "signal_type": "h3_q4_resolution_watch",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 47 | id=f8ed171d | trigger idx=1250 | time=2024-02-07T19:50:00+00:00 (UTC 19:50) | nyHour=15
+    bar: o=17850.25 h=17855.5 l=17847.25 c=17853.25
+    Q: Through bar 50 of H3, every close has stayed above H2's midpoint with no retrace. What does this signal?
+    options: ["Strong bullish line \u2014 no retrace through H2 mid; expect H3 close at or near the extreme", "Apex coiling \u2014 break is imminent in either direction", "Random walk \u2014 no diagnostic value", "Doji hour \u2014 close near open expected"]
+    correct: 'Strong bullish line — no retrace through H2 mid; expect H3 close at or near the extreme'
+    marker: {
+  "h2_mid": 17823.5,
+  "source": "Three-Hour-Line.md/Hours-two-and-three-continue",
+  "variant": "h3_strong_line_no_pullback",
+  "direction": "bullish",
+  "block_hour": 12,
+  "signal_type": "h3_strong_line_no_pullback",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 48 | id=f9d49804 | trigger idx=1251 | time=2024-02-07T19:51:00+00:00 (UTC 19:51) | nyHour=15
+    bar: o=17853.5 h=17860.25 l=17853.5 c=17856.75
+    Q: We're 50 bars into H3. Can you 'draw a line' through the three hourly candles?
+    options: ["Yes \u2014 bullish line is drawable (progressive higher highs, no violations)", "Yes \u2014 bearish line is drawable (progressive lower lows, no violations)", "No \u2014 structure broken; this is an apex"]
+    correct: 'No — structure broken; this is an apex'
+    marker: {
+  "source": "BLUF/If-you-can-draw-a-line",
+  "variant": "h3_drawable_line",
+  "block_hour": 12,
+  "signal_type": "h3_drawable_line",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 49 | id=b6baadce | trigger idx=1254 | time=2024-02-07T19:54:00+00:00 (UTC 19:54) | nyHour=15
+    bar: o=17854.75 h=17859.5 l=17854 c=17859
+    Q: Price first broke BELOW the 0-5 box then confirmed in Q2 or later by closing back ABOVE the box top. What does this pattern mean?
+    options: ["Real direction is up \u2014 the fake break planted the low", "Continuation lower", "Neutral \u2014 wait for more info"]
+    correct: 'Real direction is up — the fake break planted the low'
+    marker: {
+  "box_low": 17841.25,
+  "variant": "false_o5_break_up",
+  "box_high": 17857.25,
+  "block_hour": 12,
+  "signal_type": "false_o5_break_up",
+  "concept_focus": "module_01",
+  "break_bar_local": 6,
+  "reversal_bar_local": 54,
+  "final_classification": "bullish_line"
+}
+
+--- prompt 50 | id=bcc1108f | trigger idx=1259 | time=2024-02-07T19:59:00+00:00 (UTC 19:59) | nyHour=15
+    bar: o=17852.25 h=17854.75 l=17851.75 c=17854
+    Q: Block close. Did the third-hour effect play out as expected — extension away from block open, or retrace back to it?
+    options: ["3HE played out as MEAN REVERSION \u2014 close near block open (apex-like)", "3HE played out as EXTENSION \u2014 close significantly above block open (line-like)", "3HE played out as EXTENSION \u2014 close significantly below block open (line-like)"]
+    correct: '3HE played out as EXTENSION — close significantly above block open (line-like)'
+    marker: {
+  "source": "RE-2026-02-20+01-29+03-04",
+  "variant": "h3_close_3he_resolution",
+  "h3_close": 17854,
+  "drift_pct": 0.055,
+  "block_hour": 12,
+  "block_open": 17844.25,
+  "signal_type": "h3_close_3he_resolution",
+  "concept_focus": "line_apex",
+  "final_classification": "bullish_line"
+}
+
+--- prompt 51 | id=c3321a43 | trigger idx=1260 | time=2024-02-07T20:00:00+00:00 (UTC 20:00) | nyHour=16
+    bar: o=17854.25 h=17856.75 l=17850.25 c=17854.25
+    Q: Is this 12:00-15:00 three-hour block a Line or Apex? Bullish or bearish?
+    options: ["Bullish line", "Bearish line", "Bullish apex", "Bearish apex", "Other \u2014 does not match a clean line or apex"]
+    correct: 'Bullish line'
+    marker: {
+  "variant": "final_classification",
+  "block_hour": 12,
+  "signal_type": "final_classification",
+  "concept_focus": "line_apex",
+  "classification": "bullish_line",
+  "final_classification": "bullish_line"
+}

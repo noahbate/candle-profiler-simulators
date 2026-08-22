@@ -1,0 +1,311 @@
+# 02c — 2024-05-22 — 02c | 19 prompts | first bar 2024-05-21 22:00:00+00:00 | last bar 2024-05-22 20:59:00+00:00
+
+--- prompt 0 | id=02a390dc | trigger idx=0 | time=2024-05-21T22:00:00+00:00 (UTC 22:00) | nyHour=18
+    bar: o=18798.25 h=18799.75 l=18795.5 c=18799.25
+    Q: Session just opened — Globex open (18:00 ET). What just happened to the rolling cycle?
+    options: ["Cycle force-resets \u2014 this hour becomes the new H1 regardless of where we were.", "Cycle continues uninterrupted \u2014 session boundaries don't affect rolling structure.", "Cycle pauses until the previous H3 completes."]
+    correct: 'Cycle force-resets — this hour becomes the new H1 regardless of where we were.'
+    marker: {
+  "h1_hour": 18,
+  "boundary": "globex_open",
+  "cycle_role": "H1",
+  "signal_type": "cycle_reset_session_boundary"
+}
+
+--- prompt 1 | id=dc690c47 | trigger idx=15 | time=2024-05-21T22:15:00+00:00 (UTC 22:15) | nyHour=18
+    bar: o=18801 h=18801.5 l=18800.5 c=18801.25
+    Q: H1's first 15 minutes are complete. What line signature is this?
+    options: ["Perfect Bull \u2014 H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.", "Perfect Bear \u2014 H1 high formed in minute 0-1. Strongest bear. H3 expected lower low.", "05 Bull \u2014 H1 low formed in minute 2-5. Solid bullish bias.", "05 Bear \u2014 H1 high formed in minute 2-5. Solid bearish bias.", "False 05 Bull \u2014 early bear faked, reversed in min 5-15. True direction is bullish.", "False 05 Bear \u2014 early bull faked, reversed in min 5-15. True direction is bearish.", "None \u2014 extreme formed after minute 15. No structural bias this cycle."]
+    correct: 'Perfect Bull — H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.'
+    marker: {
+  "h1_hour": 18,
+  "line_sig": "perfect-bull",
+  "cycle_role": "H1",
+  "signal_type": "h1_line_signature",
+  "extreme_minute": 0,
+  "cycle_direction": "bull"
+}
+
+--- prompt 2 | id=9d2748fd | trigger idx=104 | time=2024-05-21T23:44:00+00:00 (UTC 23:44) | nyHour=19
+    bar: o=18812.5 h=18812.5 l=18811.5 c=18812
+    Q: An apex just fired in H2. What pattern is it?
+    options: ["Q1 Sweep \u2014 Q1 took H1 expected extreme, Q2 reversed to opposite side. Fastest reversal.", "Q2 Break \u2014 Q2 continued past Q1, Q3 broke Q2 opposite side. Mid-hour reversal.", "Q3 Break \u2014 Q3 continued past Q2, Q4 broke Q3 opposite side. Latest apex."]
+    correct: 'Q2 Break — Q2 continued past Q1, Q3 broke Q2 opposite side. Mid-hour reversal.'
+    marker: {
+  "h1_low": 18795.5,
+  "h1_high": 18813.5,
+  "h1_hour": 18,
+  "h2_hour": 19,
+  "apex_kind": "q2break",
+  "cycle_role": "H2",
+  "signal_type": "h2_apex",
+  "cycle_direction": "bull"
+}
+
+--- prompt 3 | id=c4ecc9c1 | trigger idx=255 | time=2024-05-22T02:15:00+00:00 (UTC 02:15) | nyHour=-2
+    bar: o=18818.5 h=18818.5 l=18817.75 c=18818
+    Q: H1's first 15 minutes are complete. What line signature is this?
+    options: ["Perfect Bull \u2014 H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.", "Perfect Bear \u2014 H1 high formed in minute 0-1. Strongest bear. H3 expected lower low.", "05 Bull \u2014 H1 low formed in minute 2-5. Solid bullish bias.", "05 Bear \u2014 H1 high formed in minute 2-5. Solid bearish bias.", "False 05 Bull \u2014 early bear faked, reversed in min 5-15. True direction is bullish.", "False 05 Bear \u2014 early bull faked, reversed in min 5-15. True direction is bearish.", "None \u2014 extreme formed after minute 15. No structural bias this cycle."]
+    correct: 'Perfect Bull — H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.'
+    marker: {
+  "h1_hour": 22,
+  "line_sig": "perfect-bull",
+  "cycle_role": "H1",
+  "signal_type": "h1_line_signature",
+  "extreme_minute": 0,
+  "cycle_direction": "bull"
+}
+
+--- prompt 4 | id=87c482c4 | trigger idx=320 | time=2024-05-22T03:20:00+00:00 (UTC 03:20) | nyHour=-1
+    bar: o=18809 h=18809 l=18807.75 c=18808
+    Q: H2 just took H1's low without an apex. What does this tell you about the cycle?
+    options: ["Direction flips for the cycle \u2014 now bear. H3 should target H2's low.", "Direction holds \u2014 still bull. H3 should still target H2's high.", "Cycle resets \u2014 this hour becomes the new H1."]
+    correct: "Direction flips for the cycle — now bear. H3 should target H2's low."
+    marker: {
+  "h1_low": 18808.75,
+  "h1_high": 18824,
+  "h1_hour": 22,
+  "h2_hour": 23,
+  "cycle_role": "H2",
+  "signal_type": "h2_direction_flip",
+  "new_direction": "bear",
+  "old_direction": "bull"
+}
+
+--- prompt 5 | id=6e871003 | trigger idx=419 | time=2024-05-22T04:59:00+00:00 (UTC 04:59) | nyHour=0
+    bar: o=18810 h=18810 l=18808.5 c=18809.25
+    Q: H3 closed without completing the line and is NOT inside H2. What happens to the cycle?
+    options: ["Cycle expires \u2014 the next hour becomes new H1 by fallback.", "Cycle continues into a 4th hour until completion.", "Direction flips \u2014 H3's close direction sets the new bias."]
+    correct: 'Cycle expires — the next hour becomes new H1 by fallback.'
+    marker: {
+  "h1_low": 18808.75,
+  "h2_low": 18807.5,
+  "h3_low": 18808,
+  "h1_high": 18824,
+  "h1_hour": 22,
+  "h2_high": 18812.5,
+  "h2_hour": 23,
+  "h3_high": 18813.5,
+  "h3_hour": 0,
+  "h2_inside": false,
+  "cycle_role": "H3",
+  "signal_type": "h3_no_completion",
+  "h3_inside_h2": false,
+  "cycle_direction": "bear"
+}
+
+--- prompt 6 | id=cf3b9396 | trigger idx=435 | time=2024-05-22T05:15:00+00:00 (UTC 05:15) | nyHour=1
+    bar: o=18813 h=18813.5 l=18812 c=18812.25
+    Q: H1's first 15 minutes are complete. What line signature is this?
+    options: ["Perfect Bull \u2014 H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.", "Perfect Bear \u2014 H1 high formed in minute 0-1. Strongest bear. H3 expected lower low.", "05 Bull \u2014 H1 low formed in minute 2-5. Solid bullish bias.", "05 Bear \u2014 H1 high formed in minute 2-5. Solid bearish bias.", "False 05 Bull \u2014 early bear faked, reversed in min 5-15. True direction is bullish.", "False 05 Bear \u2014 early bull faked, reversed in min 5-15. True direction is bearish.", "None \u2014 extreme formed after minute 15. No structural bias this cycle."]
+    correct: 'Perfect Bull — H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.'
+    marker: {
+  "h1_hour": 1,
+  "line_sig": "perfect-bull",
+  "cycle_role": "H1",
+  "signal_type": "h1_line_signature",
+  "extreme_minute": 0,
+  "cycle_direction": "bull"
+}
+
+--- prompt 7 | id=1b7c50d4 | trigger idx=599 | time=2024-05-22T07:59:00+00:00 (UTC 07:59) | nyHour=3
+    bar: o=18800.75 h=18801.75 l=18798.75 c=18800
+    Q: H3 closed without completing the line and is NOT inside H2. What happens to the cycle?
+    options: ["Cycle expires \u2014 the next hour becomes new H1 by fallback.", "Cycle continues into a 4th hour until completion.", "Direction flips \u2014 H3's close direction sets the new bias."]
+    correct: 'Cycle expires — the next hour becomes new H1 by fallback.'
+    marker: {
+  "h1_low": 18809.25,
+  "h2_low": 18801.25,
+  "h3_low": 18789,
+  "h1_high": 18820.5,
+  "h1_hour": 1,
+  "h2_high": 18820.75,
+  "h2_hour": 2,
+  "h3_high": 18808.5,
+  "h3_hour": 3,
+  "h2_inside": false,
+  "cycle_role": "H3",
+  "signal_type": "h3_no_completion",
+  "h3_inside_h2": false,
+  "cycle_direction": "bull"
+}
+
+--- prompt 8 | id=f53ed5cb | trigger idx=615 | time=2024-05-22T08:15:00+00:00 (UTC 08:15) | nyHour=4
+    bar: o=18807.25 h=18807.25 l=18806 c=18806.75
+    Q: H1's first 15 minutes are complete. What line signature is this?
+    options: ["Perfect Bull \u2014 H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.", "Perfect Bear \u2014 H1 high formed in minute 0-1. Strongest bear. H3 expected lower low.", "05 Bull \u2014 H1 low formed in minute 2-5. Solid bullish bias.", "05 Bear \u2014 H1 high formed in minute 2-5. Solid bearish bias.", "False 05 Bull \u2014 early bear faked, reversed in min 5-15. True direction is bullish.", "False 05 Bear \u2014 early bull faked, reversed in min 5-15. True direction is bearish.", "None \u2014 extreme formed after minute 15. No structural bias this cycle."]
+    correct: 'Perfect Bull — H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.'
+    marker: {
+  "h1_hour": 4,
+  "line_sig": "perfect-bull",
+  "cycle_role": "H1",
+  "signal_type": "h1_line_signature",
+  "extreme_minute": 0,
+  "cycle_direction": "bull"
+}
+
+--- prompt 9 | id=6649aed7 | trigger idx=678 | time=2024-05-22T09:18:00+00:00 (UTC 09:18) | nyHour=5
+    bar: o=18790 h=18790.25 l=18785.25 c=18786.75
+    Q: H2 just took H1's low without an apex. What does this tell you about the cycle?
+    options: ["Direction flips for the cycle \u2014 now bear. H3 should target H2's low.", "Direction holds \u2014 still bull. H3 should still target H2's high.", "Cycle resets \u2014 this hour becomes the new H1."]
+    correct: "Direction flips for the cycle — now bear. H3 should target H2's low."
+    marker: {
+  "h1_low": 18786,
+  "h1_high": 18807.75,
+  "h1_hour": 4,
+  "h2_hour": 5,
+  "cycle_role": "H2",
+  "signal_type": "h2_direction_flip",
+  "new_direction": "bear",
+  "old_direction": "bull"
+}
+
+--- prompt 10 | id=15fd2650 | trigger idx=746 | time=2024-05-22T10:26:00+00:00 (UTC 10:26) | nyHour=6
+    bar: o=18773 h=18773.5 l=18770 c=18770.5
+    Q: The 3-hour line just completed. What happens to the cycle now?
+    options: ["H3 becomes the new H1 \u2014 cycle resets immediately.", "Cycle stalls one more hour \u2014 wait for confirmation.", "Direction flips \u2014 opposite side is the real move."]
+    correct: 'H3 becomes the new H1 — cycle resets immediately.'
+    marker: {
+  "h1_low": 18786,
+  "h2_low": 18771,
+  "h1_high": 18807.75,
+  "h1_hour": 4,
+  "h2_high": 18798.25,
+  "h2_hour": 5,
+  "h3_hour": 6,
+  "h2_inside": false,
+  "cycle_role": "H3",
+  "signal_type": "h3_line_complete",
+  "completion_path": "normal",
+  "cycle_direction": "bear"
+}
+
+--- prompt 11 | id=28063856 | trigger idx=747 | time=2024-05-22T10:27:00+00:00 (UTC 10:27) | nyHour=6
+    bar: o=18770.5 h=18771.5 l=18768.5 c=18770.25
+    Q: H3 just completed the line — and H1 was a Perfect Line. What's the conviction on this cycle?
+    options: ["Highest \u2014 textbook cycle. Perfect line H1 + H3 completion is the cleanest setup.", "Medium \u2014 completion is good but Perfect Line doesn't add anything.", "Low \u2014 Perfect Line means the move already happened, completion is late."]
+    correct: 'Highest — textbook cycle. Perfect line H1 + H3 completion is the cleanest setup.'
+    marker: {
+  "setup": "textbook_perfect",
+  "h1_hour": 4,
+  "h2_hour": 5,
+  "h3_hour": 6,
+  "cycle_role": "H3",
+  "h1_line_sig": "perfect-bull",
+  "signal_type": "setup_textbook_perfect",
+  "completion_path": "normal"
+}
+
+--- prompt 12 | id=aab3fd9b | trigger idx=900 | time=2024-05-22T13:00:00+00:00 (UTC 13:00) | nyHour=9
+    bar: o=18802.75 h=18805 l=18802.25 c=18804
+    Q: Session just opened — RTH open (09:00 ET). What just happened to the rolling cycle?
+    options: ["Cycle force-resets \u2014 this hour becomes the new H1 regardless of where we were.", "Cycle continues uninterrupted \u2014 session boundaries don't affect rolling structure.", "Cycle pauses until the previous H3 completes."]
+    correct: 'Cycle force-resets — this hour becomes the new H1 regardless of where we were.'
+    marker: {
+  "h1_hour": 9,
+  "boundary": "rth_open",
+  "cycle_role": "H1",
+  "signal_type": "cycle_reset_session_boundary"
+}
+
+--- prompt 13 | id=4cb0e30d | trigger idx=960 | time=2024-05-22T14:00:00+00:00 (UTC 14:00) | nyHour=10
+    bar: o=18823.75 h=18832.75 l=18820.75 c=18823
+    Q: H2 just took H1's high without an apex. What does this tell you about the cycle?
+    options: ["Direction flips for the cycle \u2014 now bull. H3 should target H2's high.", "Direction holds \u2014 still bear. H3 should still target H2's low.", "Cycle resets \u2014 this hour becomes the new H1."]
+    correct: "Direction flips for the cycle — now bull. H3 should target H2's high."
+    marker: {
+  "h1_low": 18788.75,
+  "h1_high": 18830.5,
+  "h1_hour": 9,
+  "h2_hour": 10,
+  "cycle_role": "H2",
+  "signal_type": "h2_direction_flip",
+  "new_direction": "bull",
+  "old_direction": "bear"
+}
+
+--- prompt 14 | id=49425926 | trigger idx=1025 | time=2024-05-22T15:05:00+00:00 (UTC 15:05) | nyHour=11
+    bar: o=18830 h=18834.5 l=18829.25 c=18833.5
+    Q: The 3-hour line just completed. What happens to the cycle now?
+    options: ["H3 becomes the new H1 \u2014 cycle resets immediately.", "Cycle stalls one more hour \u2014 wait for confirmation.", "Direction flips \u2014 opposite side is the real move."]
+    correct: 'H3 becomes the new H1 — cycle resets immediately.'
+    marker: {
+  "h1_low": 18788.75,
+  "h2_low": 18801.5,
+  "h1_high": 18830.5,
+  "h1_hour": 9,
+  "h2_high": 18832.75,
+  "h2_hour": 10,
+  "h3_hour": 11,
+  "h2_inside": false,
+  "cycle_role": "H3",
+  "signal_type": "h3_line_complete",
+  "completion_path": "normal",
+  "cycle_direction": "bull"
+}
+
+--- prompt 15 | id=babdac2c | trigger idx=1215 | time=2024-05-22T18:15:00+00:00 (UTC 18:15) | nyHour=14
+    bar: o=18750 h=18755.75 l=18748.75 c=18753.75
+    Q: H1's first 15 minutes are complete. What line signature is this?
+    options: ["Perfect Bull \u2014 H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.", "Perfect Bear \u2014 H1 high formed in minute 0-1. Strongest bear. H3 expected lower low.", "05 Bull \u2014 H1 low formed in minute 2-5. Solid bullish bias.", "05 Bear \u2014 H1 high formed in minute 2-5. Solid bearish bias.", "False 05 Bull \u2014 early bear faked, reversed in min 5-15. True direction is bullish.", "False 05 Bear \u2014 early bull faked, reversed in min 5-15. True direction is bearish.", "None \u2014 extreme formed after minute 15. No structural bias this cycle."]
+    correct: 'Perfect Bear — H1 high formed in minute 0-1. Strongest bear. H3 expected lower low.'
+    marker: {
+  "h1_hour": 14,
+  "line_sig": "perfect-bear",
+  "cycle_role": "H1",
+  "signal_type": "h1_line_signature",
+  "extreme_minute": 0,
+  "cycle_direction": "bear"
+}
+
+--- prompt 16 | id=c17b6786 | trigger idx=1292 | time=2024-05-22T19:32:00+00:00 (UTC 19:32) | nyHour=15
+    bar: o=18753.25 h=18783.5 l=18752.5 c=18773.75
+    Q: H2 just took H1's high without an apex. What does this tell you about the cycle?
+    options: ["Direction flips for the cycle \u2014 now bull. H3 should target H2's high.", "Direction holds \u2014 still bear. H3 should still target H2's low.", "Cycle resets \u2014 this hour becomes the new H1."]
+    correct: "Direction flips for the cycle — now bull. H3 should target H2's high."
+    marker: {
+  "h1_low": 18684.25,
+  "h1_high": 18771.75,
+  "h1_hour": 14,
+  "h2_hour": 15,
+  "cycle_role": "H2",
+  "signal_type": "h2_direction_flip",
+  "new_direction": "bull",
+  "old_direction": "bear"
+}
+
+--- prompt 17 | id=ec865442 | trigger idx=1320 | time=2024-05-22T20:00:00+00:00 (UTC 20:00) | nyHour=16
+    bar: o=18793.75 h=18818.75 l=18792 c=18813
+    Q: The 3-hour line just completed. What happens to the cycle now?
+    options: ["H3 becomes the new H1 \u2014 cycle resets immediately.", "Cycle stalls one more hour \u2014 wait for confirmation.", "Direction flips \u2014 opposite side is the real move."]
+    correct: 'H3 becomes the new H1 — cycle resets immediately.'
+    marker: {
+  "h1_low": 18684.25,
+  "h2_low": 18694.25,
+  "h1_high": 18771.75,
+  "h1_hour": 14,
+  "h2_high": 18794.25,
+  "h2_hour": 15,
+  "h3_hour": 16,
+  "h2_inside": false,
+  "cycle_role": "H3",
+  "signal_type": "h3_line_complete",
+  "completion_path": "normal",
+  "cycle_direction": "bull"
+}
+
+--- prompt 18 | id=821e8fc5 | trigger idx=1321 | time=2024-05-22T20:01:00+00:00 (UTC 20:01) | nyHour=16
+    bar: o=18812.75 h=18814.75 l=18801.5 c=18804.25
+    Q: H3 just completed the line — and H1 was a Perfect Line. What's the conviction on this cycle?
+    options: ["Highest \u2014 textbook cycle. Perfect line H1 + H3 completion is the cleanest setup.", "Medium \u2014 completion is good but Perfect Line doesn't add anything.", "Low \u2014 Perfect Line means the move already happened, completion is late."]
+    correct: 'Highest — textbook cycle. Perfect line H1 + H3 completion is the cleanest setup.'
+    marker: {
+  "setup": "textbook_perfect",
+  "h1_hour": 14,
+  "h2_hour": 15,
+  "h3_hour": 16,
+  "cycle_role": "H3",
+  "h1_line_sig": "perfect-bear",
+  "signal_type": "setup_textbook_perfect",
+  "completion_path": "normal"
+}
