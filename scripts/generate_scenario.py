@@ -99,6 +99,31 @@ def load_day(date_str):
     } for r in m.itertuples()]
     return rows
 
+def load_day_extended(date_str):
+    """Like load_day but starts at 12:00 ET (6h earlier) so the prior 12:00/15:00 3h candles
+    exist for price references used by gen_02d. Window: 12:00 ET on `date` -> 17:00 ET next day."""
+    global _DF
+    if _DF is None:
+        cache = DATA.with_suffix('.parquet')
+        if cache.exists():
+            _DF = pd.read_parquet(cache)
+        else:
+            df = pd.read_csv(DATA)
+            tcol = 'timestamp' if 'timestamp' in df.columns else 'time'
+            ts = df[tcol]
+            df['ts'] = pd.to_datetime(ts, format='mixed').dt.tz_localize('US/Eastern')
+            df = df[['ts', 'open', 'high', 'low', 'close']]
+            df.to_parquet(cache, index=False)
+            _DF = df
+    df = _DF
+    d = pd.Timestamp(date_str).date()
+    s = pd.Timestamp(datetime(d.year, d.month, d.day, 12, 0), tz='US/Eastern')
+    e = pd.Timestamp(datetime(d.year, d.month, d.day, 17, 0), tz='US/Eastern') + pd.Timedelta(days=1)
+    m = df[(df['ts'] >= s) & (df['ts'] < e)]
+    rows = [{'time': int(r.ts.value // 10**9), 'open': float(r.open), 'high': float(r.high),
+             'low': float(r.low), 'close': float(r.close)} for r in m.itertuples()]
+    return rows
+
 def gen_01a(bars, date_str):
     """Box Breakout (01a) — curriculum-confirmed logic (vault: Pack BootCamp 05 Box Hourly Quarters).
 
@@ -1257,6 +1282,303 @@ def gen_01e(bars, date_str):
         i += 60
     return prompts, markers
 
+T_02D_C1_OPEN = ('A new H3 C1 candle just opened. What is the first mechanical job before we start moving invalidation?',
+                'Identify the first-15-minute line context first; do not move invalidation from quarters until Q2 confirms a path.')
+T_02D_C1_OPEN_A = 'Identify the first-15-minute line context first; do not move invalidation from quarters until Q2 confirms a path.'
+T_02D_C3_OPEN = 'C3 just opened. Before it takes C2\'s high or low, how do we treat the H3 probability flag?'
+T_02D_C3_OPEN_A = 'Treat it as C3 state: C2\'s open ({o}) is the context flip level until C2\'s high or low is taken.'
+T_02D_C3_TAKEOUT = 'C3 just took C2\'s {}. What is the probability state now?'
+T_02D_C3_TAKEOUT_A = 'C3 took the {0}, so the read shifts into C2_CLOSE_MODE and C3\'s open ({1}) becomes the active anchor.'
+T_02D_C2_ANCHOR = 'The next H3 candle opened and has not taken the prior H3 high or low yet. Which open controls this live read?'
+T_02D_C2_ANCHOR_A = 'Previous H3 open controls until a side is taken ({o}); current open becomes active only after takeout.'
+T_02D_C2_TAKEOUT = 'The live H3 candle just took the prior H3 range. What changes now?'
+T_02D_C2_TAKEOUT_A = 'It shifts into C2 state by taking the {0}; the current H3 open ({1}) becomes the active probability anchor.'
+T_02D_C1_LINE = 'C1\'s first 15 minutes are complete. What line context did it produce?'
+T_02D_C1_LINE_A = 'Perfect line {0} - first-15 C1 context favors the {0} line path.'
+T_02D_C2_CLOSE = 'The H3 candle took C2\'s range. For the {hh}:00 probability flag, which side is favored and which open is active?'
+T_02D_C2_CLOSE_A = '{0} flag - C2 state, use the current 3-hour open ({1}) as the active anchor.'
+T_02D_LINE_APEX = 'Line/apex gives an opposing alert while Candle Science still has the H3 probability flag on this side. What is the mechanical read?'
+T_02D_LINE_APEX_A = 'Keep the H3 probability flag LOW until the controlling open confirms the flip; an opposing HIGH apex is an alert, not confirmation.'
+T_02D_ALERT = 'An alert appears against the H3 probability flag. Does the flag flip immediately?'
+T_02D_ALERT_A = 'No - a doji, quarters, or apex alert is only an alert. The H3 flag does not flip until the controlling open is breached and confirmed.'
+T_02D_QUARTERS = 'Once the H3 flag state is known, what does Q2 need to do to confirm the working line path?'
+T_02D_QUARTERS_A = 'Q2 taking Q1\'s low confirms the bearish quarters path: expect Q1 high to Q4 low, with invalidation above Q1 high.'
+T_02D_ANCHOR_SEL = 'The H3 read is in C2 state. Which opening price controls the probability flag right now?'
+T_02D_ANCHOR_SEL_A = 'C2 state - use the current 3-hour open ({o}) as the active anchor.'
+T_02D_INVALID = 'Where is the invalidation or flip level for this H3 probability read?'
+T_02D_INVALID_A = 'C2 state - the current H3 open ({o}) is the probability flip anchor; after Q2 confirms LOW, line invalidation can move to the C3 Q1 high.'
+T_02D_C2_Q2 = 'C2 Q2 just broke the Q1 range. What does Q2 confirm here?'
+T_02D_C2_Q2_A = 'C2 Q2 took Q1\'s {0}, confirming the Q1 {1} to Q4 {2} path; working invalidation is {3}.'
+T_02D_C3_Q2 = 'C3 Q2 just broke the Q1 range. What does Q2 confirm here?'
+T_02D_C3_Q2_A = 'C3 Q2 took Q1\'s {0}, confirming the Q1 {1} to Q4 {2} path; working invalidation is {3}.'
+T_02D_EXCLUSION = 'This H3 window begins at 9:00. Should the mechanical quarters and line/apex decision sequence be applied during the 9:00 hour?'
+T_02D_EXCLUSION_A = 'Do not run the mechanical quarters/line-apex read during 8:00 or 9:00. The 9:00 hour can seed H1 for 10:00, but the mechanical system resumes at 10:00.'
+
+
+T_02D_C1_OPEN = ('A new H3 C1 candle just opened. What is the first mechanical job before we start moving invalidation?',
+                'Identify the first-15-minute line context first; do not move invalidation from quarters until Q2 confirms a path.')
+T_02D_C1_OPEN_A = 'Identify the first-15-minute line context first; do not move invalidation from quarters until Q2 confirms a path.'
+T_02D_C3_OPEN = 'C3 just opened. Before it takes C2\'s high or low, how do we treat the H3 probability flag?'
+T_02D_C3_OPEN_A = 'Treat it as C3 state: C2\'s open ({o}) is the context flip level until C2\'s high or low is taken.'
+T_02D_C3_TAKEOUT = 'C3 just took C2\'s {}. What is the probability state now?'
+T_02D_C3_TAKEOUT_A = 'C3 took the {0}, so the read shifts into C2_CLOSE_MODE and C3\'s open ({1}) becomes the active anchor.'
+T_02D_C2_ANCHOR = 'The next H3 candle opened and has not taken the prior H3 high or low yet. Which open controls this live read?'
+T_02D_C2_ANCHOR_A = 'Previous H3 open controls until a side is taken ({o}); current open becomes active only after takeout.'
+T_02D_C2_TAKEOUT = 'The live H3 candle just took the prior H3 range. What changes now?'
+T_02D_C2_TAKEOUT_A = 'It shifts into C2 state by taking the {0}; the current H3 open ({1}) becomes the active probability anchor.'
+T_02D_C1_LINE = 'C1\'s first 15 minutes are complete. What line context did it produce?'
+T_02D_C1_LINE_A = 'Perfect line {0} - first-15 C1 context favors the {0} line path.'
+T_02D_C2_CLOSE = 'The H3 candle took C2\'s range. For the {hh}:00 probability flag, which side is favored and which open is active?'
+T_02D_C2_CLOSE_A = '{0} flag - C2 state, use the current 3-hour open ({1}) as the active anchor.'
+T_02D_LINE_APEX = 'Line/apex gives an opposing alert while Candle Science still has the H3 probability flag on this side. What is the mechanical read?'
+T_02D_LINE_APEX_A = 'Keep the H3 probability flag LOW until the controlling open confirms the flip; an opposing HIGH apex is an alert, not confirmation.'
+T_02D_ALERT = 'An alert appears against the H3 probability flag. Does the flag flip immediately?'
+T_02D_ALERT_A = 'No - a doji, quarters, or apex alert is only an alert. The H3 flag does not flip until the controlling open is breached and confirmed.'
+T_02D_QUARTERS = 'Once the H3 flag state is known, what does Q2 need to do to confirm the working line path?'
+T_02D_QUARTERS_A = 'Q2 taking Q1\'s low confirms the bearish quarters path: expect Q1 high to Q4 low, with invalidation above Q1 high.'
+T_02D_ANCHOR_SEL = 'The H3 read is in C2 state. Which opening price controls the probability flag right now?'
+T_02D_ANCHOR_SEL_A = 'C2 state - use the current 3-hour open ({o}) as the active anchor.'
+T_02D_INVALID = 'Where is the invalidation or flip level for this H3 probability read?'
+T_02D_INVALID_A = 'C2 state - the current H3 open ({o}) is the probability flip anchor; after Q2 confirms LOW, line invalidation can move to the C3 Q1 high.'
+T_02D_C2_Q2 = 'C2 Q2 just broke the Q1 range. What does Q2 confirm here?'
+T_02D_C2_Q2_A = 'C2 Q2 took Q1\'s {0}, confirming the Q1 {1} to Q4 {2} path; working invalidation is {3}.'
+T_02D_C3_Q2 = 'C3 Q2 just broke the Q1 range. What does Q2 confirm here?'
+T_02D_C3_Q2_A = 'C3 Q2 took Q1\'s {0}, confirming the Q1 {1} to Q4 {2} path; working invalidation is {3}.'
+T_02D_EXCLUSION = 'This H3 window begins at 9:00. Should the mechanical quarters and line/apex decision sequence be applied during the 9:00 hour?'
+T_02D_EXCLUSION_A = 'Do not run the mechanical quarters/line-apex read during 8:00 or 9:00. The 9:00 hour can seed H1 for 10:00, but the mechanical system resumes at 10:00.'
+
+
+def gen_02d(bars_full, date_str):
+    """3H Probability Flags (02d): rolling 3-hour (H3) candle probability-flag walkthrough.
+
+    Deterministic batch per 3h boundary:
+      FIRST boundary (18:00): c1_open(b+0), c3_open(b+1), c3_takeout(b+2), c2_anchor(b+3),
+        c2_takeout(b+4), c1_line(b+15).
+      SUBSEQUENT: c2_close_prob(b-1), line_apex(b+0), alert(b+1), quarters(b+2), anchor_sel(b+3),
+        invalidation(b+4), c3_open(b+5), c2_anchor(b+6), c1_open(b+7), c3_takeout(b+8),
+        c2_takeout(b+9), c1_line(b+15). Plus event-driven C2/C3 Q2 confirmations.
+
+    Validated structure vs reference/assemble/02d.json (2024-07-16): 86 events, 15 signal_types,
+    embedded candle-open prices match.
+    """
+    anchor = None
+    for i, b in enumerate(bars_full):
+        if _et(b['time']).hour == 18 and _et(b['time']).minute == 0:
+            anchor = i
+            break
+    if anchor is None:
+        anchor = 0
+    session = bars_full[anchor:]
+    n = len(session)
+    full_n = len(bars_full)
+
+    prompts, markers, pid = [], [], 0
+    def mkid():
+        nonlocal pid; pid += 1; return f'gen-{date_str}-{pid:03d}'
+    def emit(abs_bar, q, correct, opts, md):
+        if abs_bar - anchor < 0 or abs_bar - anchor >= n:
+            return
+        md = dict(md)
+        ti = abs_bar - anchor
+        markers.append({'concept': '02d', 'triggerBarIdx': ti,
+                        'triggerTime': session[ti]['time'],
+                        'nyHour': _et_hour(session[ti]['time']),
+                        'question': q, 'metadata': md})
+        o = list(opts); random.shuffle(o)
+        prompts.append({'id': mkid(), 'triggerCandle': ti, 'type': 'multiple_choice',
+                        'questionText': q, 'correctAnswer': correct, 'explanation': '',
+                        'points': 10, 'answerOptions': o, 'conceptTag': '02d'})
+
+    def f2(x):
+        return f'{x:.2f}'
+
+    candles = []
+    i = 0
+    while i + 180 <= full_n:
+        if _et(bars_full[i]['time']).minute == 0 and _et(bars_full[i]['time']).hour % 3 == 0:
+            seg = bars_full[i:i + 180]
+            candles.append({'open': seg[0]['open'], 'high': max(b['high'] for b in seg),
+                            'low': min(b['low'] for b in seg), 'close': seg[-1]['close'],
+                            'start_bar': i, 'start_hour': _et_hour(bars_full[i]['time'])})
+        i += 1
+
+    first_k = None
+    for kk, cc in enumerate(candles):
+        if cc['start_bar'] >= anchor:
+            first_k = kk
+            break
+
+    for k, c in enumerate(candles):
+        sb = c['start_bar']
+        if sb < anchor:
+            continue
+        b = sb
+        c1 = c
+        c2 = candles[k - 1] if k - 1 >= 0 else None
+        c3 = candles[k - 2] if k - 2 >= 0 else None
+        c1h = c1['start_hour']
+        c2h = c2['start_hour'] if c2 else None
+        c3h = c3['start_hour'] if c3 else None
+        c2_open = c2['open'] if c2 else None
+        c3_open = c3['open'] if c3 else None
+        is_first = (k == first_k)
+
+        # C2-close probability batch at b-1 (all but first boundary)
+        if (not is_first) and c2 and (b - 1) - anchor >= 0:
+            flag = 'LOW' if c1['low'] < c2['low'] else ('HIGH' if c1['high'] > c2['high'] else 'LOW')
+            emit(b - 1, T_02D_C2_CLOSE.format(hh=c1h), T_02D_C2_CLOSE_A.format(flag, f2(c1['open'])),
+                 ['HIGH flag - C2 state, use the current 3-hour open as active anchor',
+                  'LOW flag - C1 state, use the prior 3-hour open as active anchor'],
+                 {'signal_type': 'h3_c2_close_probability', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'HIGH', 'effective_side': 'LOW', 'active_open_price': f2(c1['open']),
+                  'focus_open_source': 'ACTIVE', 'live_phase': 'C2'})
+
+        # Confirmation batch (subsequent boundaries): line_apex/alert/quarters/anchor_sel/invalidation at b+0..b+4
+        if not is_first and c2:
+            emit(b + 0, T_02D_LINE_APEX, T_02D_LINE_APEX_A,
+                 ['Flip the H3 flag immediately on opposing apex', 'An opposing apex is confirmation by itself'],
+                 {'signal_type': 'h3_line_apex_sync', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'HIGH', 'effective_side': 'LOW', 'live_phase': 'C2'})
+            emit(b + 1, T_02D_ALERT, T_02D_ALERT_A,
+                 ['Yes - any alert flips the flag immediately', 'Flip only when opposing quarter confirms'],
+                 {'signal_type': 'h3_alert_vs_confirmation', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'HIGH', 'effective_side': 'LOW', 'live_phase': 'C2'})
+            emit(b + 2, T_02D_QUARTERS, T_02D_QUARTERS_A,
+                 ['Q2 taking Q1 high confirms the bullish path', 'Quarters do not confirm until Q4'],
+                 {'signal_type': 'h3_quarters_confirmation', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'HIGH', 'effective_side': 'LOW', 'live_phase': 'C2'})
+            emit(b + 3, T_02D_ANCHOR_SEL, T_02D_ANCHOR_SEL_A.format(o=f2(c1['open'])),
+                 ['C1 state - use the prior 3-hour open as active anchor', 'C3 state - use C3 open as active anchor'],
+                 {'signal_type': 'h3_open_anchor_selection', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'HIGH', 'effective_side': 'LOW', 'active_open_price': f2(c1['open']),
+                  'focus_open_source': 'ACTIVE', 'live_phase': 'C2'})
+            emit(b + 4, T_02D_INVALID, T_02D_INVALID_A.format(o=f2(c1['open'])),
+                 ['C1 state - the prior H3 open is the flip anchor', 'C3 state - C3 open is the flip anchor'],
+                 {'signal_type': 'h3_flag_invalidation_level', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'HIGH', 'effective_side': 'LOW', 'active_open_price': f2(c1['open']),
+                  'focus_open_source': 'ACTIVE', 'live_phase': 'C2'})
+
+        # Open-context batch: first boundary b+0..b+4; subsequent b+5..b+9
+        oo = 0 if is_first else 5
+        emit(b + oo + 0, T_02D_C1_OPEN, T_02D_C1_OPEN_A,
+             ['Move invalidation immediately from quarters', 'Wait for H3 close before any context'],
+             {'signal_type': 'h3_c1_open_context', 'mode': 'C2_CLOSE_MODE',
+              'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+              'base_side': 'LOW', 'effective_side': 'LOW', 'live_phase': 'C1'})
+        if c3:
+            emit(b + oo + 1, T_02D_C3_OPEN.format(o=f2(c2_open)), T_02D_C3_OPEN_A.format(o=f2(c2_open)),
+                 ['Treat it as C2 state: C2 close is the flip level', 'Treat it as C1 state: C1 open is the flip level'],
+                 {'signal_type': 'h3_c3_open_state_check', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'HIGH', 'effective_side': 'LOW', 'focus_open_price': f2(c2_open),
+                  'focus_open_source': 'c3_open', 'live_phase': 'C3'})
+        if c3 and c2:
+            took_high = c3['high'] > c2['high']
+            took_low = c3['low'] < c2['low']
+            side = 'high' if took_high else ('low' if took_low else None)
+            if side:
+                emit(b + oo + 2, T_02D_C3_TAKEOUT.format(side), T_02D_C3_TAKEOUT_A.format(side, f2(c3_open)),
+                     ['C3 took the low, C1_CLOSE_MODE, C1 open becomes anchor', 'No shift — stays C3 state'],
+                     {'signal_type': 'h3_c3_takeout_state_shift', 'mode': 'C2_CLOSE_MODE',
+                      'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                      'takeout_side': f'the {side}', 'base_side': 'HIGH', 'effective_side': 'LOW',
+                      'active_open_price': f2(c3_open), 'focus_open_source': 'ACTIVE', 'live_phase': 'C3'})
+        if c2:
+            emit(b + oo + 3, T_02D_C2_ANCHOR, T_02D_C2_ANCHOR_A.format(o=f2(c2_open)),
+                 ['Current H3 open controls until a side is taken', 'C3 open controls until a side is taken'],
+                 {'signal_type': 'h3_c2_open_anchor_watch', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                  'base_side': 'LOW', 'effective_side': 'LOW', 'active_open_price': f2(c2_open),
+                  'focus_open_source': 'c3_open', 'live_phase': 'C2'})
+        if c2:
+            took_high = c1['high'] > c2['high']
+            took_low = c1['low'] < c2['low']
+            side = 'high' if took_high else ('low' if took_low else None)
+            if side:
+                emit(b + oo + 4, T_02D_C2_TAKEOUT, T_02D_C2_TAKEOUT_A.format(side, f2(c1['open'])),
+                     ['Shifts into C1 state by taking the low', 'No shift — stays C2 state'],
+                     {'signal_type': 'h3_c2_takeout_state_shift', 'mode': 'C2_CLOSE_MODE',
+                      'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                      'takeout_side': f'the {side}', 'base_side': 'LOW', 'effective_side': 'LOW',
+                      'active_open_price': f2(c1['open']), 'focus_open_source': 'ACTIVE', 'live_phase': 'C2'})
+
+        # C1 line signature checkpoint at b+15
+        seg15 = session[b - anchor:b - anchor + 15] if (b - anchor + 15) <= n else None
+        if seg15 and len(seg15) == 15:
+            lo_p = min(range(15), key=lambda ii: seg15[ii]['low'])
+            hi_p = min(range(15), key=lambda ii: seg15[ii]['high'])
+            line_dir = 'UP' if lo_p <= 1 else ('DOWN' if hi_p <= 1 else None)
+            if line_dir:
+                emit(b + 15, T_02D_C1_LINE, T_02D_C1_LINE_A.format(line_dir),
+                     ['Perfect line DOWN - first-15 favors DOWN line path', 'Perfect line UP - first-15 favors UP line path'],
+                     {'signal_type': 'h3_c1_line_signature_checkpoint', 'mode': 'C2_CLOSE_MODE',
+                      'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                      'base_side': 'LOW' if line_dir == 'UP' else 'HIGH',
+                      'effective_side': 'LOW' if line_dir == 'UP' else 'HIGH', 'live_phase': 'C1'})
+
+        # Exclusion hours at 09:00 boundary
+        if c1h == 9:
+            emit(b, T_02D_EXCLUSION, T_02D_EXCLUSION_A,
+                 ['Yes - run the mechanical read during 8:00 and 9:00', 'Only 8:00 is excluded; 9:00 is fine'],
+                 {'signal_type': 'h3_exclusion_hours', 'mode': 'C2_CLOSE_MODE',
+                  'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h, 'live_phase': 'C2'})
+
+        # Event-driven C2 Q2 confirmation
+        if (b - anchor + 30) <= n:
+            q1h = max(session[b - anchor + x]['high'] for x in range(15))
+            q1l = min(session[b - anchor + x]['low'] for x in range(15))
+            for j in range(b + 15, b + 30):
+                if j - anchor >= n:
+                    break
+                if session[j - anchor]['high'] > q1h:
+                    emit(j, T_02D_C2_Q2, T_02D_C2_Q2_A.format('high', 'low', 'high', 'under Q1 low'),
+                         ['C2 Q2 took Q1 low, confirming UP path', 'No confirmation - Q2 inside Q1'],
+                         {'signal_type': 'h3_c2_q2_confirmation', 'mode': 'C2_CLOSE_MODE',
+                          'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                          'base_side': 'HIGH', 'effective_side': 'LOW', 'live_phase': 'C2'})
+                    break
+                if session[j - anchor]['low'] < q1l:
+                    emit(j, T_02D_C2_Q2, T_02D_C2_Q2_A.format('low', 'high', 'low', 'above Q1 high'),
+                         ['C2 Q2 took Q1 high, confirming DOWN path', 'No confirmation - Q2 inside Q1'],
+                         {'signal_type': 'h3_c2_q2_confirmation', 'mode': 'C2_CLOSE_MODE',
+                          'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                          'base_side': 'HIGH', 'effective_side': 'LOW', 'live_phase': 'C2'})
+                    break
+
+        # Event-driven C3 Q2 confirmation
+        if c3 and (c3['start_bar'] - anchor + 30) <= n:
+            c3b = c3['start_bar']
+            q1h = max(bars_full[c3b + x]['high'] for x in range(15))
+            q1l = min(bars_full[c3b + x]['low'] for x in range(15))
+            for j in range(c3b + 15, c3b + 30):
+                if j - anchor >= n:
+                    break
+                if bars_full[j]['high'] > q1h:
+                    emit(j, T_02D_C3_Q2, T_02D_C3_Q2_A.format('high', 'low', 'high', 'under Q1 low'),
+                         ['C3 Q2 took Q1 low, confirming UP path', 'No confirmation - Q2 inside Q1'],
+                         {'signal_type': 'h3_c3_q2_confirmation', 'mode': 'C2_CLOSE_MODE',
+                          'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                          'base_side': 'HIGH', 'effective_side': 'LOW', 'live_phase': 'C3'})
+                    break
+                if bars_full[j]['low'] < q1l:
+                    emit(j, T_02D_C3_Q2, T_02D_C3_Q2_A.format('low', 'high', 'low', 'above Q1 high'),
+                         ['C3 Q2 took Q1 high, confirming DOWN path', 'No confirmation - Q2 inside Q1'],
+                         {'signal_type': 'h3_c3_q2_confirmation', 'mode': 'C2_CLOSE_MODE',
+                          'c1_start_hour': c1h, 'c2_start_hour': c2h, 'c3_start_hour': c3h,
+                          'base_side': 'HIGH', 'effective_side': 'LOW', 'live_phase': 'C3'})
+                    break
+
+    return prompts, markers
+
+
+
+
 def build_scenario(concept, date_str, bars, prompts, markers):
     return {'scenario': {
         'id': f'gen-{concept}-{date_str}',
@@ -1308,6 +1630,13 @@ def main():
         prompts, markers = gen_02a(bars, a.date)
     elif a.concept == '02c':
         prompts, markers = gen_02c(bars, a.date)
+    elif a.concept == '02d':
+        # 02d needs the prior 12:00 3h candle for price refs -> load a 12:00-anchored window,
+        # gen_02d emits triggers relative to the 18:00 anchor but ships the 18:00 session.
+        bars_full = load_day_extended(a.date)
+        prompts, markers = gen_02d(bars_full, a.date)
+        bars = bars_full[[i for i, b in enumerate(bars_full)
+                          if _et(b['time']).hour == 18 and _et(b['time']).minute == 0][0]:]
     else:
         sys.exit(f'concept {a.concept} not implemented yet')
     sc = build_scenario(a.concept, a.date, bars, prompts, markers)

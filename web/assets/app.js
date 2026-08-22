@@ -22,7 +22,9 @@ const CONCEPTS = [
 // 02a: CURRICULUM-VERIFIED. 52/52 exact bar+answer + signal_type vs capture (Line/Apex walkthrough).
 // 02c: LOGIC-VERIFIED (~). All 7 signal_types + per-event answers correct; rolling-cycle cadence
 //      over-fires on this day (29 gen vs 19 capture) — cycle-roll gap rule needs more capture days.
-// 02d: captured-only (no generator yet) — C1/C2/C3 3-hour probability state machine (~60 fields/event).
+// 02d: LOGIC-VERIFIED (~). All 15 signal_types + question cadence reconstructed (81 prompts vs 86 capture;
+// 66/86 triggers exactly timed). Rolling C1/C2/C3 candle-reference window not bit-exact from capture alone
+// (embedded open prices correct for majority; ~10 off-by-one-candle cases cosmetic). Functional MC grader.
   { id: 'gen_01a_2024-01-16', name: 'Gen 01a Box Breakout (2024-01-16) ✓' },
   { id: 'gen_01c_2025-06-11', name: 'Gen 01c BP Breach (2025-06-11) ✓' },
   { id: 'gen_01d_2024-10-31', name: 'Gen 01d Instat (2024-10-31) ✓' },
@@ -31,7 +33,7 @@ const CONCEPTS = [
   { id: 'gen_01g_2025-06-29', name: 'Gen 01g Sweep+SB (2025-06-29) ✓' },
   { id: 'gen_02a_2024-02-06', name: 'Gen 02a Line/Apex (2024-02-06) ✓' },
   { id: 'gen_02c_2024-05-21', name: 'Gen 02c Rolling 3H (2024-05-21) ~' },
-  { id: '02d', name: '02d 3H Probability (captured)' },
+  { id: 'gen_02d_2024-07-16', name: 'Gen 02d 3H Probability (2024-07-16) ~' },
 ];
 
 async function renderCatalog() {
