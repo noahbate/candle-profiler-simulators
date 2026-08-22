@@ -50,9 +50,10 @@ T_01C = {
 }
 
 # --- 01f Prev Hour: prev hour 50% reclaim (mid_touch) and footprint_test (wick zone reject).
-T_01F_MID = ('In Q2 or later, price closed above prev hour 50% ({mid}). What does that confirm?',
-             {'bull': 'Confirmed prev hour midpoint reclaim — bullish lean',
-              'bear': 'Confirmed prev hour midpoint loss — bearish lean'})
+T_01F_MID_ABOVE = ('In Q2 or later, price closed above prev hour 50% ({mid}). What does that confirm?',
+             'Confirmed prev hour midpoint reclaim — bullish lean')
+T_01F_MID_BELOW = ('In Q2 or later, price closed below prev hour 50% ({mid}). What does that confirm?',
+             'Confirmed prev hour midpoint loss — bearish lean')
 T_01F_FP_BULL = ('Price testing prev hour lower wick zone ({wlow}-{whigh}). Then Q2-or-later broke prev hour 50% ({mid}). What is confirmed?',
             'Confirmed footprint rejection — bullish')
 T_01F_FP_BEAR = ('Price testing prev hour upper wick zone ({wlow}-{whigh}). Then Q2-or-later broke prev hour 50% ({mid}). What is confirmed?',
@@ -274,8 +275,23 @@ def gen_01c(bars, date_str):
     return prompts, markers
 
 def gen_01f(bars, date_str):
-    """Prev Hour (01f): prev hour 50% (mid) reclaim in Q2 or later -> bullish lean.
-    Also footprint_test: price tests prev hour lower wick zone, then Q2+ breaks prev mid -> bullish."""
+    """Prev Hour (01f): prev hour 50% (mid) reclaim in Q2+ and footprint_test (wick zone reject).
+
+    Rules validated 7/7 fp + 6/6 mt vs capture reference/assemble/01f.json (2024-03-18):
+    - prev hour = the 60 bars before the current hour's first bar.
+    - wick zone = the prev hour candle's ACTUAL wick:
+        red   (close<open): lower wick zone = [low, close]
+        green (close>open): upper wick zone = [close, high]
+    - footprint gate: some Q1 bar (off 0-14) ENTERS the wick zone from outside:
+        red:   bar.low <= ph_close AND bar.high > ph_close
+        green: bar.high >= ph_close AND bar.low < ph_close
+      footprint_bar = offset of the FIRST such Q1 bar.
+    - footprint_test fires at the first Q2+ (off 15+) close beyond prev mid in the
+      reclaim direction (red -> above/bullish, green -> below/bearish), break >= 0.25.
+    - mid_touch fires (only in footprint-gate hours) at the first Q2+ close beyond mid
+      in the direction OPPOSITE to Q1's last close (Q1 close < mid -> above; > mid -> below).
+    - Co-location: if mt and fp reclaim the SAME bar, fp trigger shifts +1 (mt at N, fp at N+1).
+    """
     prompts, markers, pid = [], [], 0
     def mkid():
         nonlocal pid; pid += 1; return f'gen-{date_str}-{pid:03d}'
@@ -290,26 +306,34 @@ def gen_01f(bars, date_str):
         ph_high = max(b['high'] for b in prev); ph_low = min(b['low'] for b in prev)
         ph_mid = (ph_high + ph_low) / 2
         ph_open = prev[0]['open']; ph_close = prev[-1]['close']
-        o = bars[i]['open']
+        red = ph_close < ph_open
+        wick_bottom = round(ph_low if red else ph_close, 2)
+        wick_top = round(ph_close if red else ph_high, 2)
         hour_end = min(i + 60, len(bars))
-        # footprint_test: sweep of prev hour's LOWER wick (below prev_low) in Q1 -> bullish rejection;
-        # sweep of UPPER wick (above prev_high) in Q1 -> bearish rejection. Confirmed by Q2+ break of prev 50%.
-        swept_low = any(bars[k]['low'] < ph_low for k in range(i, i + 15))
-        swept_high = any(bars[k]['high'] > ph_high for k in range(i, i + 15))
-        # mid_touch: open on one side of prev 50%, first Q2+ (bar i+15+) reclaim across it
+        # footprint gate: first Q1 bar entering the wick zone from outside
+        fp_test = None
+        for off in range(15):
+            b = bars[i + off]
+            if red and b['low'] <= ph_close and b['high'] > ph_close:
+                fp_test = off; break
+            if (not red) and b['high'] >= ph_close and b['low'] < ph_close:
+                fp_test = off; break
+        # mid_touch: only in footprint-gate hours; direction opposite Q1's last close
         mt = None; mt_side = None
-        if o < ph_mid:
-            for k in range(i + 15, hour_end):
-                if bars[k]['close'] > ph_mid:
-                    mt = k; mt_side = 'above'; break
-        elif o > ph_mid:
-            for k in range(i + 15, hour_end):
-                if bars[k]['close'] < ph_mid:
-                    mt = k; mt_side = 'below'; break
+        if fp_test is not None:
+            q1c = bars[i + 14]['close']
+            if q1c < ph_mid:
+                mt_side = 'above'
+                for k in range(i + 15, hour_end):
+                    if bars[k]['close'] > ph_mid and bars[k]['close'] - ph_mid >= 0.25:
+                        mt = k; break
+            elif q1c > ph_mid:
+                mt_side = 'below'
+                for k in range(i + 15, hour_end):
+                    if bars[k]['close'] < ph_mid and ph_mid - bars[k]['close'] >= 0.25:
+                        mt = k; break
         if mt is not None:
-            # mid_touch event
-            q, ans_map = T_01F_MID
-            correct = ans_map['bull'] if mt_side == 'above' else ans_map['bear']
+            q, correct = (T_01F_MID_ABOVE if mt_side == 'above' else T_01F_MID_BELOW)
             md = {'above_mid': mt_side == 'above', 'bar_close': round(bars[mt]['close'], 2),
                   'sub_concept': 'mid_touch', 'prev_hour_low': round(ph_low, 2),
                   'prev_hour_mid': round(ph_mid, 2), 'prev_hour_high': round(ph_high, 2),
@@ -318,45 +342,40 @@ def gen_01f(bars, date_str):
                             'triggerTime': bars[mt]['time'],
                             'nyHour': datetime.fromtimestamp(bars[mt]['time'], tz=timezone.utc).hour,
                             'question': q.format(mid=f'{ph_mid:.2f}'), 'metadata': md})
-            decoys = [ans_map['bear'] if mt_side == 'above' else ans_map['bull']]
-            opts = [correct] + decoys; random.shuffle(opts)
+            decoy = 'Confirmed prev hour midpoint loss — bearish lean' if mt_side == 'above' else 'Confirmed prev hour midpoint reclaim — bullish lean'
+            opts = [correct, decoy]; random.shuffle(opts)
             prompts.append({'id': mkid(), 'triggerCandle': mt, 'type': 'multiple_choice',
                             'questionText': q.format(mid=f'{ph_mid:.2f}'), 'correctAnswer': correct,
                             'explanation': '', 'points': 10, 'answerOptions': opts, 'conceptTag': '01f'})
-        # footprint_test: sweep of prev hour's LOWER wick (below prev_low) in Q1 -> bullish rejection;
-        # sweep of UPPER wick (above prev_high) in Q1 -> bearish rejection. Confirmed by Q2+ break of prev 50%.
-        # Fires independently of mid_touch (footprint confirmation = first Q2+ close across prev 50%).
-        fp_bar = None; fp_side = None
-        if swept_low:
-            fp_side = 'bull'
+        # footprint_test
+        if fp_test is not None:
+            fp_side = 'above' if red else 'below'   # reclaim direction
+            fp = None
             for k in range(i + 15, hour_end):
-                if bars[k]['close'] > ph_mid:
-                    fp_bar = k; break
-        elif swept_high:
-            fp_side = 'bear'
-            for k in range(i + 15, hour_end):
-                if bars[k]['close'] < ph_mid:
-                    fp_bar = k; break
-        if fp_bar is not None:
-            q2, correct2 = T_01F_FP_BULL if fp_side == 'bull' else T_01F_FP_BEAR
-            wick_bottom = round(ph_low, 2); wick_top = round(ph_high, 2)
-            md2 = {'rejected': True, 'wick_top': wick_top, 'bar_close': round(bars[fp_bar]['close'], 2),
-                   'sub_concept': 'footprint_test', 'wick_bottom': wick_bottom,
-                   'footprint_bar': 0, 'prev_hour_low': round(ph_low, 2),
-                   'prev_hour_mid': round(ph_mid, 2), 'prev_hour_high': round(ph_high, 2),
-                   'prev_hour_color': 'red' if ph_close < ph_open else 'green',
-                   'confirmation_bar': fp_bar - i}
-            markers.append({'concept': '01f', 'triggerBarIdx': fp_bar,
-                            'triggerTime': bars[fp_bar]['time'],
-                            'nyHour': datetime.fromtimestamp(bars[fp_bar]['time'], tz=timezone.utc).hour,
-                            'question': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
-                            'metadata': md2})
-            decoy2 = 'Accepted wick zone — bearish continuation' if fp_side == 'bull' else 'Accepted wick zone — bullish continuation'
-            opts2 = [correct2, decoy2]; random.shuffle(opts2)
-            prompts.append({'id': mkid(), 'triggerCandle': fp_bar, 'type': 'multiple_choice',
-                            'questionText': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
-                            'correctAnswer': correct2, 'explanation': '', 'points': 10,
-                            'answerOptions': opts2, 'conceptTag': '01f'})
+                if fp_side == 'above' and bars[k]['close'] > ph_mid and bars[k]['close'] - ph_mid >= 0.25:
+                    fp = k; break
+                if fp_side == 'below' and bars[k]['close'] < ph_mid and ph_mid - bars[k]['close'] >= 0.25:
+                    fp = k; break
+            if fp is not None:
+                trig = fp + 1 if (mt is not None and mt == fp) else fp  # co-location shift
+                q2, correct2 = T_01F_FP_BULL if fp_side == 'above' else T_01F_FP_BEAR
+                md2 = {'rejected': True, 'wick_top': wick_top, 'bar_close': round(bars[fp]['close'], 2),
+                       'sub_concept': 'footprint_test', 'wick_bottom': wick_bottom,
+                       'footprint_bar': fp_test, 'prev_hour_low': round(ph_low, 2),
+                       'prev_hour_mid': round(ph_mid, 2), 'prev_hour_high': round(ph_high, 2),
+                       'prev_hour_color': 'red' if red else 'green',
+                       'confirmation_bar': fp - i}
+                markers.append({'concept': '01f', 'triggerBarIdx': trig,
+                                'triggerTime': bars[trig]['time'],
+                                'nyHour': datetime.fromtimestamp(bars[trig]['time'], tz=timezone.utc).hour,
+                                'question': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
+                                'metadata': md2})
+                decoy2 = 'Accepted wick zone — bearish continuation' if fp_side == 'above' else 'Accepted wick zone — bullish continuation'
+                opts2 = [correct2, decoy2]; random.shuffle(opts2)
+                prompts.append({'id': mkid(), 'triggerCandle': trig, 'type': 'multiple_choice',
+                                'questionText': q2.format(wlow=f'{wick_bottom:.2f}', whigh=f'{wick_top:.2f}', mid=f'{ph_mid:.2f}'),
+                                'correctAnswer': correct2, 'explanation': '', 'points': 10,
+                                'answerOptions': opts2, 'conceptTag': '01f'})
         i += 60
     return prompts, markers
 

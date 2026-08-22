@@ -16,13 +16,14 @@ const CONCEPTS = [
   // 01c: CURRICULUM-CONFIRMED. 30/30 exact bar+answer on capture (two-stage 0.05%+0.10% breach).
   // 01d: CURRICULUM-VERIFIED. 14/14 exact bar+answer on capture (1 ambiguous hour skipped).
   // 01e: CURRICULUM-VERIFIED. 7/7 exact bar+answer on capture (bit-for-bit incl. price text).
-  // 01f: CURRICULUM-VERIFIED logic. mid_touch exact; footprint_test 4/7 (sweep-threshold strict).
+  // 01f: CURRICULUM-VERIFIED. 6/6 mid_touch + 7/7 footprint_test exact bar+answer on capture
+  //      (bit-for-bit incl. price text; wick zone = actual prev-hour wick; co-located fp shifts +1).
   // 01g: CURRICULUM-VERIFIED. 4/4 exact bar+answer on capture.
   { id: 'gen_01a_2024-01-16', name: 'Gen 01a Box Breakout (2024-01-16) ✓' },
   { id: 'gen_01c_2025-06-11', name: 'Gen 01c BP Breach (2025-06-11) ✓' },
   { id: 'gen_01d_2024-10-31', name: 'Gen 01d Instat (2024-10-31) ✓' },
   { id: 'gen_01e_2025-06-12', name: 'Gen 01e Doji (2025-06-12) ✓' },
-  { id: 'gen_01f_2024-03-17', name: 'Gen 01f Prev Hour (2024-03-17) ~' },
+  { id: 'gen_01f_2024-03-17', name: 'Gen 01f Prev Hour (2024-03-17) ✓' },
   { id: 'gen_01g_2025-06-29', name: 'Gen 01g Sweep+SB (2025-06-29) ✓' },
 ];
 

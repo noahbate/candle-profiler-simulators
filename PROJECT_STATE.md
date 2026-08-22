@@ -43,7 +43,7 @@ trigger bar's timestamp matches a capture event's timestamp AND the correctAnswe
 | **01c** BP Breach | first 5 min | two-stage: 0.05% breach (reject/anticipate) + 0.10% breach (momentum) | **30/30 exact bar+answer** on captured day | ✓ verified |
 | **01d** Instat | Q1/Q2 = first 30 min | first Q2 bar taking Q1 high→bull / low→bear; single-side | **14/14 exact bar+answer**; 1 ambiguous double-break hour skipped | ✓ verified |
 | **01e** Doji | Q1/Q2/Q3 quarters | Q3 takes Q2 opposite extreme → doji; price = Q2 extreme | **7/7 exact bar+answer** (bit-for-bit incl. price text) | ✓ verified |
-| **01f** Prev Hour | prev hour 50% + wick zone | mid_touch (reclaim across 50% vs open side); footprint_test (sweep wick zone + reclaim) | mid_touch exact; **footprint_test 4/7** (sweep threshold strict) | ~ verified |
+| **01f** Prev Hour | prev hour 50% + wick zone | mid_touch (first Q2+ close beyond mid, direction opposite Q1's last close, in footprint-gate hours); footprint_test (Q1 bar enters prev-hour wick zone from outside → first Q2+ reclaim close; co-located with mt shifts trigger +1) | **6/6 mid_touch + 7/7 footprint_test exact bar+answer** (bit-for-bit incl. price text) | ✓ verified |
 | **01g** Sweep+SB | prev hour low/high + mid | sweep prev low/high → suckback → break prev mid in Q2+ → manipulation | **4/4 exact bar+answer** on captured day | ✓ verified |
 
 ### 01a — curriculum-confirmed
@@ -56,20 +56,30 @@ trigger bar's timestamp matches a capture event's timestamp AND the correctAnswe
 - Box 0–05; 0.05% breach fires `reject` (no 0.10% reached) or `anticipate continuation` (0.10% reached);
   a SEPARATE 0.10% breach event fires `momentum confirmed` at the 0.10% bar.
 
-### 01f — prev hour 50% + footprint
-- mid_touch: open on one side of prev 50%, first Q2+ reclaim across it (bullish if above, bearish if below).
-- footprint_test: sweep of prev hour low (or high) in Q1, then Q2+ reclaim of prev 50% → rejection
-  (bullish if swept low, bearish if swept high). Generator's sweep gate is slightly strict (4/7 detected).
+### 01f — prev hour 50% + footprint (verified 7/7 fp + 6/6 mt, 2026-08-22)
+- prev hour = the 60 bars before the hour; mid = (high+low)/2 of prev hour.
+- **Wick zone = the prev hour candle's ACTUAL wick**, NOT a percentage band:
+  red (close<open) → lower wick zone [low, close]; green (close>open) → upper wick zone [close, high].
+- **footprint gate** (the fix for 4/7→7/7): a Q1 bar (off 0-14) must ENTER the wick zone from
+  outside — red: low ≤ prev close AND high > prev close; green: high ≥ prev close AND low < prev
+  close. A full sweep below prev low / above prev high is NOT required (that was the too-strict gate).
+  `footprint_bar` = offset of the first such Q1 bar.
+- footprint_test fires at the first Q2+ (off 15+) close beyond prev mid in the reclaim direction
+  (red → above/bullish, green → below/bearish), break ≥ 0.25 (one NQ tick).
+- mid_touch fires only in footprint-gate hours, at the first Q2+ close beyond mid in the direction
+  OPPOSITE to Q1's last close (Q1 close < mid → above/bullish; > mid → below/bearish).
+- **Co-location**: when mt and fp reclaim the SAME bar, the site emits both — mt at bar N, fp at
+  N+1 (fp trigger shifts +1). When they reclaim at different bars, each fires at its own bar.
+- Q1 = bars 0-14 of the hour, Q2+ = bars 15-59. Sub-tick closes (|close−mid| < 0.25) don't count.
 
 ### 01g — sweep + suckback + break
 - Sweep prev hour low → suckback into range → Q2+ break of prev 50% = bullish manipulation.
   Sweep prev high → bearish. Exact on the captured day.
 
 ## Known gaps / TODO
-1. **01f footprint_test** fires 4/7 of capture events (sweep threshold stricter than site's wick-zone test).
-2. **02a/02c/02d** still captured-only (no generator). 02a (32 unique Qs) and 02d (86 prompts,
+1. **02a/02c/02d** still captured-only (no generator). 02a (32 unique Qs) and 02d (86 prompts,
    3-candle C1/C2/C3 engine) are heavy bespoke work.
-3. Date convention: `--date` = start evening (18:00 ET) of the session. Capture labels for 01f/01g
+2. Date convention: `--date` = start evening (18:00 ET) of the session. Capture labels for 01f/01g
    are the RTH day, so pass label−1 (e.g. 01f RTH 2024-03-18 → `--date 2024-03-17`).
 
 ## Related projects touched
