@@ -1,0 +1,443 @@
+====================================================================================================
+### h3_alert_vs_confirmation (7)
+  Q: An alert appears against the H3 probability flag. Does the flag flip immediately?
+    -> No - a doji, quarters, or apex alert is only an alert. The H3 flag does not flip until the controlling open is breached and confirmed.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 21:01', 181), ('07-17 00:02', 362), ('07-17 03:01', 541), ('07-17 06:00', 720), ('07-17 09:02', 902), ('07-17 12:01', 1081), ('07-17 15:03', 1263)]
+====================================================================================================
+### h3_c1_line_signature_checkpoint (5)
+  Q: C1's first 15 minutes are complete. What line context did it produce?
+    -> Perfect line UP - first-15 C1 context favors the UP line path.
+    -> Perfect line DOWN - first-15 C1 context favors the DOWN line path.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN']
+    base_side: ['LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    focus_open_price: ['20087', '20280.25', '20343.25', '20455.25', '20535.5']
+    context_open_price: ['20280.25', '20343.25', '20455.25', '20535.5', '20564.25']
+    active_open_price: ['20087', '20280.25', '20343.25', '20455.25', '20535.5']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False']
+    c2_took_c1_low: ['True']
+    c3_took_c2_high: ['False']
+    c3_took_c2_low: ['True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Below']
+    c3_close_side_vs_c2_open: ['Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+    block_start_hour: ['0', '12', '3', '6', '9']
+    target_hour: ['12', '15', '3', '6', '9']
+  triggers: [('07-16 18:15', 15), ('07-16 21:15', 195), ('07-17 00:15', 375), ('07-17 03:15', 555), ('07-17 06:16', 736)]
+====================================================================================================
+### h3_c1_open_context (5)
+  Q: A new H3 C1 candle just opened. What is the first mechanical job before we start moving invalidation?
+    -> Identify the first-15-minute line context first; do not move invalidation from quarters until Q2 confirms a path.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN']
+    base_side: ['LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    focus_open_price: ['20087', '20280.25', '20343.25', '20455.25', '20535.5']
+    context_open_price: ['20280.25', '20343.25', '20455.25', '20535.5', '20564.25']
+    active_open_price: ['20087', '20280.25', '20343.25', '20455.25', '20535.5']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False']
+    c2_took_c1_low: ['True']
+    c3_took_c2_high: ['False']
+    c3_took_c2_low: ['True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Below']
+    c3_close_side_vs_c2_open: ['Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+    block_start_hour: ['0', '12', '3', '6', '9']
+    target_hour: ['12', '15', '3', '6', '9']
+  triggers: [('07-16 18:00', 0), ('07-16 21:07', 187), ('07-17 00:05', 365), ('07-17 03:05', 545), ('07-17 06:07', 727)]
+====================================================================================================
+### h3_c2_close_probability (7)
+  Q: The H3 candle took C2's range. For the 21:00 probability flag, which side is favored and which open is active?
+    -> LOW flag - C2 state, use the current 3-hour open (20591.00) as the active anchor.
+  Q: The H3 candle took C2's range. For the 00:00 probability flag, which side is favored and which open is active?
+    -> LOW flag - C2 state, use the current 3-hour open (20564.25) as the active anchor.
+  Q: The H3 candle took C2's range. For the 03:00 probability flag, which side is favored and which open is active?
+    -> LOW flag - C2 state, use the current 3-hour open (20535.50) as the active anchor.
+  Q: The H3 candle took C2's range. For the 06:00 probability flag, which side is favored and which open is active?
+    -> LOW flag - C2 state, use the current 3-hour open (20455.25) as the active anchor.
+  Q: The H3 candle took C2's range. For the 09:00 probability flag, which side is favored and which open is active?
+    -> LOW flag - C2 state, use the current 3-hour open (20343.25) as the active anchor.
+  Q: The H3 candle took C2's range. For the 12:00 probability flag, which side is favored and which open is active?
+    -> LOW flag - C2 state, use the current 3-hour open (20280.25) as the active anchor.
+  Q: The H3 candle took C2's range. For the 15:00 probability flag, which side is favored and which open is active?
+    -> LOW flag - C2 state, use the current 3-hour open (20087.00) as the active anchor.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 20:59', 179), ('07-17 00:00', 360), ('07-17 03:04', 544), ('07-17 06:03', 723), ('07-17 08:59', 899), ('07-17 12:04', 1084), ('07-17 14:59', 1259)]
+====================================================================================================
+### h3_c2_open_anchor_watch (6)
+  Q: The next H3 candle opened and has not taken the prior H3 high or low yet. Which open controls this live read?
+    -> Previous H3 open controls until a side is taken (20550.75); current open becomes active only after takeout.
+    -> Previous H3 open controls until a side is taken (20591.00); current open becomes active only after takeout.
+    -> Previous H3 open controls until a side is taken (20564.25); current open becomes active only after takeout.
+    -> Previous H3 open controls until a side is taken (20535.50); current open becomes active only after takeout.
+    -> Previous H3 open controls until a side is taken (20455.25); current open becomes active only after takeout.
+    -> Previous H3 open controls until a side is taken (20343.25); current open becomes active only after takeout.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN']
+    base_side: ['LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False']
+    c3_took_c2_low: ['True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Below']
+    c3_close_side_vs_c2_open: ['Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 18:03', 3), ('07-16 21:06', 186), ('07-17 00:07', 367), ('07-17 03:06', 546), ('07-17 06:06', 726), ('07-17 09:06', 906)]
+====================================================================================================
+### h3_c2_q2_confirmation (3)
+  Q: C2 Q2 just broke the Q1 range. What does Q2 confirm here?
+    -> C2 Q2 took Q1's low, confirming the Q1 high to Q4 low path; working invalidation is above Q1 high.
+    -> C2 Q2 took Q1's high, confirming the Q1 low to Q4 high path; working invalidation is under Q1 low.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN']
+    base_side: ['LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    focus_open_price: ['20087', '20280.25', '20343.25']
+    context_open_price: ['20280.25', '20343.25', '20455.25']
+    active_open_price: ['20087', '20280.25', '20343.25']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False']
+    c2_took_c1_low: ['True']
+    c3_took_c2_high: ['False']
+    c3_took_c2_low: ['True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Below']
+    c3_close_side_vs_c2_open: ['Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+    block_start_hour: ['12', '6', '9']
+    target_hour: ['12', '15', '9']
+  triggers: [('07-17 03:27', 567), ('07-17 06:17', 737), ('07-17 09:17', 917)]
+====================================================================================================
+### h3_c2_takeout_state_shift (6)
+  Q: The live H3 candle just took the prior H3 range. What changes now?
+    -> It shifts into C2 state by taking the high; the current H3 open (20591.00) becomes the active probability anchor.
+    -> It shifts into C2 state by taking the low; the current H3 open (20564.25) becomes the active probability anchor.
+    -> It shifts into C2 state by taking the low; the current H3 open (20535.50) becomes the active probability anchor.
+    -> It shifts into C2 state by taking the low; the current H3 open (20455.25) becomes the active probability anchor.
+    -> It shifts into C2 state by taking the low; the current H3 open (20343.25) becomes the active probability anchor.
+    -> It shifts into C2 state by taking the low; the current H3 open (20280.25) becomes the active probability anchor.
+    takeout_side: ['the high', 'the low']
+    first_takeout_side: ['DOWN']
+    base_side: ['LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False']
+    c3_took_c2_low: ['True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Below']
+    c3_close_side_vs_c2_open: ['Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 18:04', 4), ('07-16 21:09', 189), ('07-17 00:34', 394), ('07-17 03:09', 549), ('07-17 07:07', 787), ('07-17 09:28', 928)]
+====================================================================================================
+### h3_c3_open_state_check (7)
+  Q: C3 just opened. Before it takes C2's high or low, how do we treat the H3 probability flag?
+    -> Treat it as C3 state: C2's open (20550.75) is the context flip level until C2's high or low is taken.
+    -> Treat it as C3 state: C2's open (20591.00) is the context flip level until C2's high or low is taken.
+    -> Treat it as C3 state: C2's open (20564.25) is the context flip level until C2's high or low is taken.
+    -> Treat it as C3 state: C2's open (20535.50) is the context flip level until C2's high or low is taken.
+    -> Treat it as C3 state: C2's open (20455.25) is the context flip level until C2's high or low is taken.
+    -> Treat it as C3 state: C2's open (20343.25) is the context flip level until C2's high or low is taken.
+    -> Treat it as C3 state: C2's open (20280.25) is the context flip level until C2's high or low is taken.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 18:01', 1), ('07-16 21:05', 185), ('07-17 00:06', 366), ('07-17 03:07', 547), ('07-17 06:05', 725), ('07-17 09:05', 905), ('07-17 12:06', 1086)]
+====================================================================================================
+### h3_c3_q2_confirmation (4)
+  Q: C3 Q2 just broke the Q1 range. What does Q2 confirm here?
+    -> C3 Q2 took Q1's low, confirming the Q1 high to Q4 low path; working invalidation is above Q1 high.
+    -> C3 Q2 took Q1's high, confirming the Q1 low to Q4 high path; working invalidation is under Q1 low.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN']
+    base_side: ['LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    focus_open_price: ['20087', '20280.25', '20343.25', '20455.25']
+    context_open_price: ['20280.25', '20343.25', '20455.25', '20535.5']
+    active_open_price: ['20087', '20280.25', '20343.25', '20455.25']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False']
+    c2_took_c1_low: ['True']
+    c3_took_c2_high: ['False']
+    c3_took_c2_low: ['True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Below']
+    c3_close_side_vs_c2_open: ['Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+    block_start_hour: ['12', '3', '6', '9']
+    target_hour: ['12', '15', '6', '9']
+  triggers: [('07-17 03:28', 568), ('07-17 06:15', 735), ('07-17 09:18', 918), ('07-17 12:26', 1106)]
+====================================================================================================
+### h3_c3_takeout_state_shift (7)
+  Q: C3 just took C2's high or low. What is the probability state now?
+    -> C3 took the high, so the read shifts into C2_CLOSE_MODE and C3's open (20591.00) becomes the active anchor.
+    -> C3 took the low, so the read shifts into C2_CLOSE_MODE and C3's open (20564.25) becomes the active anchor.
+    -> C3 took the low, so the read shifts into C2_CLOSE_MODE and C3's open (20535.50) becomes the active anchor.
+    -> C3 took the low, so the read shifts into C2_CLOSE_MODE and C3's open (20455.25) becomes the active anchor.
+    -> C3 took the low, so the read shifts into C2_CLOSE_MODE and C3's open (20343.25) becomes the active anchor.
+    -> C3 took the low, so the read shifts into C2_CLOSE_MODE and C3's open (20280.25) becomes the active anchor.
+    -> C3 took the low, so the read shifts into C2_CLOSE_MODE and C3's open (20087.00) becomes the active anchor.
+    takeout_side: ['the high', 'the low']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 18:02', 2), ('07-16 21:08', 188), ('07-17 00:35', 395), ('07-17 03:08', 548), ('07-17 07:08', 788), ('07-17 09:29', 929), ('07-17 12:10', 1090)]
+====================================================================================================
+### h3_exclusion_hours (1)
+  Q: This H3 window begins at 9:00. Should the mechanical quarters and line/apex decision sequence be applied during the 9:00 hour?
+    -> Do not run the mechanical quarters/line-apex read during 8:00 or 9:00. The 9:00 hour can seed H1 for 10:00, but the mechanical system resumes at 10:00.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN']
+    base_side: ['LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    focus_open_price: ['20280.25']
+    context_open_price: ['20343.25']
+    active_open_price: ['20280.25']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False']
+    c2_took_c1_low: ['True']
+    c3_took_c2_high: ['False']
+    c3_took_c2_low: ['True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Below']
+    c3_close_side_vs_c2_open: ['Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+    block_start_hour: ['9']
+    target_hour: ['12']
+  triggers: [('07-17 12:00', 1080)]
+====================================================================================================
+### h3_flag_invalidation_level (7)
+  Q: Where is the invalidation or flip level for this H3 probability read?
+    -> C2 state - the current H3 open is the probability flip anchor; after Q2 confirms LOW, line invalidation can move to the C3 Q1 high.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 21:04', 184), ('07-16 23:59', 359), ('07-17 03:00', 540), ('07-17 05:59', 719), ('07-17 09:01', 901), ('07-17 12:02', 1082), ('07-17 15:02', 1262)]
+====================================================================================================
+### h3_line_apex_sync (7)
+  Q: Line/apex gives an opposing alert while Candle Science still has the H3 probability flag on this side. What is the mechanical read?
+    -> Keep the H3 probability flag LOW until the controlling open confirms the flip; an opposing HIGH apex is an alert, not confirmation.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 21:00', 180), ('07-17 00:04', 364), ('07-17 03:03', 543), ('07-17 06:02', 722), ('07-17 09:04', 904), ('07-17 11:59', 1079), ('07-17 15:00', 1260)]
+====================================================================================================
+### h3_open_anchor_selection (7)
+  Q: The H3 read is in C2 state. Which opening price controls the probability flag right now?
+    -> C2 state - use the current 3-hour open (20591.00) as the active anchor.
+    -> C2 state - use the current 3-hour open (20564.25) as the active anchor.
+    -> C2 state - use the current 3-hour open (20535.50) as the active anchor.
+    -> C2 state - use the current 3-hour open (20455.25) as the active anchor.
+    -> C2 state - use the current 3-hour open (20343.25) as the active anchor.
+    -> C2 state - use the current 3-hour open (20280.25) as the active anchor.
+    -> C2 state - use the current 3-hour open (20087.00) as the active anchor.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 21:03', 183), ('07-17 00:01', 361), ('07-17 02:59', 539), ('07-17 06:04', 724), ('07-17 09:00', 900), ('07-17 12:03', 1083), ('07-17 15:01', 1261)]
+====================================================================================================
+### h3_quarters_confirmation (7)
+  Q: Once the H3 flag state is known, what does Q2 need to do to confirm the working line path?
+    -> Q2 taking Q1's low confirms the bearish quarters path: expect Q1 high to Q4 low, with invalidation above Q1 high.
+    takeout_side: ['None']
+    first_takeout_side: ['DOWN', 'UP']
+    base_side: ['HIGH', 'LOW']
+    effective_side: ['LOW']
+    rule_bias_side: ['LOW']
+    focus_open_source: ['c3_open']
+    close_side_vs_open: ['Below']
+    close_through_open: ['True']
+    open_hold_confirmed: ['False', 'True']
+    alert_mid_breached: ['False']
+    c2_took_c1_high: ['False', 'True']
+    c2_took_c1_low: ['False', 'True']
+    c3_took_c2_high: ['False', 'True']
+    c3_took_c2_low: ['False', 'True']
+    c3_close_side_vs_c2_high: ['Below']
+    c3_close_side_vs_c2_low: ['Above', 'Below']
+    c3_close_side_vs_c2_open: ['Above', 'Below']
+    c3_close_through_c2_open: ['True']
+    c3_breached_c2_open_wick: ['False']
+    mid_touched: ['False']
+  triggers: [('07-16 21:02', 182), ('07-17 00:03', 363), ('07-17 03:02', 542), ('07-17 06:01', 721), ('07-17 09:03', 903), ('07-17 12:05', 1085), ('07-17 15:04', 1264)]

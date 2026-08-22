@@ -19,12 +19,19 @@ const CONCEPTS = [
   // 01f: CURRICULUM-VERIFIED. 6/6 mid_touch + 7/7 footprint_test exact bar+answer on capture
   //      (bit-for-bit incl. price text; wick zone = actual prev-hour wick; co-located fp shifts +1).
   // 01g: CURRICULUM-VERIFIED. 4/4 exact bar+answer on capture.
+// 02a: CURRICULUM-VERIFIED. 52/52 exact bar+answer + signal_type vs capture (Line/Apex walkthrough).
+// 02c: LOGIC-VERIFIED (~). All 7 signal_types + per-event answers correct; rolling-cycle cadence
+//      over-fires on this day (29 gen vs 19 capture) — cycle-roll gap rule needs more capture days.
+// 02d: captured-only (no generator yet) — C1/C2/C3 3-hour probability state machine (~60 fields/event).
   { id: 'gen_01a_2024-01-16', name: 'Gen 01a Box Breakout (2024-01-16) ✓' },
   { id: 'gen_01c_2025-06-11', name: 'Gen 01c BP Breach (2025-06-11) ✓' },
   { id: 'gen_01d_2024-10-31', name: 'Gen 01d Instat (2024-10-31) ✓' },
   { id: 'gen_01e_2025-06-12', name: 'Gen 01e Doji (2025-06-12) ✓' },
   { id: 'gen_01f_2024-03-17', name: 'Gen 01f Prev Hour (2024-03-17) ✓' },
   { id: 'gen_01g_2025-06-29', name: 'Gen 01g Sweep+SB (2025-06-29) ✓' },
+  { id: 'gen_02a_2024-02-06', name: 'Gen 02a Line/Apex (2024-02-06) ✓' },
+  { id: 'gen_02c_2024-05-21', name: 'Gen 02c Rolling 3H (2024-05-21) ~' },
+  { id: '02d', name: '02d 3H Probability (captured)' },
 ];
 
 async function renderCatalog() {

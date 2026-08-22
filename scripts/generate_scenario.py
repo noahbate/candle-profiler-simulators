@@ -283,6 +283,29 @@ def _et(ts):
 def _et_hour(ts):
     return _et(ts).hour
 
+# --- 02c Rolling 3-Hour Cycle ---
+T_02C_RESET = ('Session just opened — {bnd} (0{bh}:00 ET). What just happened to the rolling cycle?',
+               'Cycle force-resets — this hour becomes the new H1 regardless of where we were.')
+T_02C_RESET_A = 'Cycle force-resets — this hour becomes the new H1 regardless of where we were.'
+T_02C_APEX_BULL = ('An apex just fired in H2. What pattern is it?',
+                  'Q2 Break — Q2 continued past Q1, Q3 broke Q2 opposite side. Mid-hour reversal.')
+T_02C_APEX_BEAR = ('An apex just fired in H2. What pattern is it?',
+                  'Q2 Break — Q2 continued past Q1, Q3 broke Q2 opposite side. Mid-hour reversal.')
+T_02C_FLIP_BULL = ('H2 just took H1\'s high without an apex. What does this tell you about the cycle?',
+                  'Direction flips for the cycle — now bull. H3 should target H2\'s high.')
+T_02C_FLIP_BEAR = ('H2 just took H1\'s low without an apex. What does this tell you about the cycle?',
+                  'Direction flips for the cycle — now bear. H3 should target H2\'s low.')
+T_02C_H3_COMPLETE = ('The 3-hour line just completed. What happens to the cycle now?',
+                    'H3 becomes the new H1 — cycle resets immediately.')
+T_02C_H3_COMPLETE_A = 'H3 becomes the new H1 — cycle resets immediately.'
+T_02C_H3_NOCOMP = ('H3 closed without completing the line and is NOT inside H2. What happens to the cycle?',
+                   'Cycle expires — the next hour becomes new H1 by fallback.')
+T_02C_H3_NOCOMP_A = 'Cycle expires — the next hour becomes new H1 by fallback.'
+T_02C_TEXTBOOK = ('H3 just completed the line — and H1 was a Perfect Line. What\'s the conviction on this cycle?',
+                  'Highest — textbook cycle. Perfect line H1 + H3 completion is the cleanest setup.')
+T_02C_TEXTBOOK_A = 'Highest — textbook cycle. Perfect line H1 + H3 completion is the cleanest setup.'
+T_02C_H1_SIG = 'H1\'s first 15 minutes are complete. What line signature is this?'
+
 # --- 02a Three-Hour Line & Apex: block engine over RTH1 (9:00) and RTH2 (12:00) ---
 T_02A_POOL = [
     ('concept_apex_hour', 'An apex shows its hand in which hour of the three-hour block?',
@@ -787,6 +810,172 @@ def gen_02a(bars, date_str):
     return prompts, markers
 
 
+def gen_02c(bars, date_str):
+    """Rolling 3-Hour Cycle (02c): H1 -> H2 -> H3 cycles.
+
+    Cycle model (from capture metadata): each cycle is 3 consecutive hours
+    (H1, H2, H3). On h3_line_complete the H3 hour becomes the new H1 (immediate
+    roll). On h3_no_completion the next hour becomes new H1 by fallback. Forced
+    resets at Globex open (18:00 ET) and RTH open (09:00 ET).
+
+    Events: cycle_reset_session_boundary, h1_line_signature, h2_apex,
+    h2_direction_flip, h3_line_complete, h3_no_completion, setup_textbook_perfect.
+    """
+    prompts, markers, pid = [], [], 0
+    def mkid():
+        nonlocal pid; pid += 1; return f'gen-{date_str}-{pid:03d}'
+    def emit(bar, q, correct, opts, md):
+        if bar < 0 or bar >= n:
+            return
+        md = dict(md)
+        markers.append({'concept': '02c', 'triggerBarIdx': bar,
+                        'triggerTime': bars[bar]['time'],
+                        'nyHour': _et_hour(bars[bar]['time']),
+                        'question': q, 'metadata': md})
+        o = list(opts); random.shuffle(o)
+        prompts.append({'id': mkid(), 'triggerCandle': bar, 'type': 'multiple_choice',
+                        'questionText': q, 'correctAnswer': correct, 'explanation': '',
+                        'points': 10, 'answerOptions': o, 'conceptTag': '02c'})
+
+    n = len(bars)
+    starts = [(i, _et_hour(bars[i]['time'])) for i in range(0, n - 60, 60)
+              if _et(bars[i]['time']).minute == 0]
+    resets = {i for i, h in starts if h in (18, 9)}
+
+    h1 = None   # bar index of current cycle's H1
+    for h0, h in starts:
+        if h0 in resets:
+            h1 = h0
+            emit(h0, T_02C_RESET[0].format(bnd='Globex open' if h == 18 else 'RTH open', bh=h),
+                 T_02C_RESET[1], ['Cycle continues — H2 becomes H1', 'Cycle pauses until next session'],
+                 {'signal_type': 'cycle_reset_session_boundary', 'cycle_role': 'H1',
+                  'boundary': 'globex_open' if h == 18 else 'rth_open', 'h1_hour': h, 'h2_hour': None})
+            # H1 line signature at +15
+            sig, ans = _h1_signature(bars, h0)
+            emit(h0 + 15, sig, ans,
+                 ['No clear line signature — apex more likely', 'Perfect Bear — H1 high formed in minute 0-1. Strongest bear.'],
+                 {'signal_type': 'h1_line_signature', 'cycle_role': 'H1', 'line_sig': 'perfect-bull' if ans.startswith('Perfect Bull') else 'perfect-bear',
+                  'cycle_direction': 'bull' if ans.startswith('Perfect Bull') else 'bear', 'h1_hour': h, 'h2_hour': None})
+            continue
+        if h1 is None:
+            h1 = h0
+            emit(h0, T_02C_RESET[0].format(bnd='fallback', bh=h), T_02C_RESET[1],
+                 ['Cycle continues — H2 becomes H1', 'Cycle pauses until next session'],
+                 {'signal_type': 'cycle_reset_session_boundary', 'cycle_role': 'H1', 'boundary': 'fallback', 'h1_hour': h, 'h2_hour': None})
+            sig, ans = _h1_signature(bars, h0)
+            emit(h0 + 15, sig, ans,
+                 ['No clear line signature — apex more likely', 'Perfect Bear — H1 high formed in minute 0-1. Strongest bear.'],
+                 {'signal_type': 'h1_line_signature', 'cycle_role': 'H1',
+                  'line_sig': 'perfect-bull' if ans.startswith('Perfect Bull') else 'perfect-bear',
+                  'cycle_direction': 'bull' if ans.startswith('Perfect Bull') else 'bear', 'h1_hour': h, 'h2_hour': None})
+            continue
+        h1h = _et_hour(bars[h1]['time'])
+        delta = (h - h1h) % 24
+        if delta == 0:
+            # rolled: this hour is the new H1 (H3 of prev cycle became H1)
+            h1 = h0
+            emit(h0, T_02C_RESET[0].format(bnd='roll', bh=h), T_02C_RESET[1],
+                 ['Cycle continues — H2 becomes H1', 'Cycle pauses until next session'],
+                 {'signal_type': 'cycle_reset_session_boundary', 'cycle_role': 'H1', 'boundary': 'roll', 'h1_hour': h, 'h2_hour': None})
+            sig, ans = _h1_signature(bars, h0)
+            emit(h0 + 15, sig, ans,
+                 ['No clear line signature — apex more likely', 'Perfect Bear — H1 high formed in minute 0-1. Strongest bear.'],
+                 {'signal_type': 'h1_line_signature', 'cycle_role': 'H1',
+                  'line_sig': 'perfect-bull' if ans.startswith('Perfect Bull') else 'perfect-bear',
+                  'cycle_direction': 'bull' if ans.startswith('Perfect Bull') else 'bear', 'h1_hour': h, 'h2_hour': None})
+            continue
+        if delta == 1:
+            # H2
+            h1_bars = bars[h1:h1 + 60]; h2_bars = bars[h0:h0 + 60]
+            h1_lo = min(b['low'] for b in h1_bars); h1_hi = max(b['high'] for b in h1_bars)
+            took_low = any(b['low'] < h1_lo for b in h2_bars)
+            took_high = any(b['high'] > h1_hi for b in h2_bars)
+            apex = _h2_apex(h2_bars)
+            if apex:
+                q, a = (T_02C_APEX_BULL if apex == 'bull' else T_02C_APEX_BEAR)
+                emit(h0 + 44, q, a, ['Q1 Break — Q1 extended, Q3 failed', 'No apex — clean line'],
+                     {'signal_type': 'h2_apex', 'cycle_role': 'H2', 'cycle_direction': apex,
+                      'h1_hour': h1h, 'h2_hour': h, 'apex_kind': 'q2break'})
+            elif took_low or took_high:
+                flip = 'bear' if took_low else 'bull'
+                bar = h0 + 30
+                for k in range(h0, h0 + 60):
+                    if (took_low and bars[k]['low'] < h1_lo) or (took_high and bars[k]['high'] > h1_hi):
+                        bar = k; break
+                q, a = (T_02C_FLIP_BEAR if flip == 'bear' else T_02C_FLIP_BULL)
+                emit(bar, q, a, ['Direction holds', 'Cycle expires'],
+                     {'signal_type': 'h2_direction_flip', 'cycle_role': 'H2', 'cycle_direction': flip,
+                      'h1_hour': h1h, 'h2_hour': h})
+        elif delta == 2:
+            # H3
+            h1_bars = bars[h1:h1 + 60]; h2_bars = bars[h1 + 60:h1 + 120]; h3_bars = bars[h0:h0 + 60]
+            h1_lo = min(b['low'] for b in h1_bars); h1_hi = max(b['high'] for b in h1_bars)
+            h2_lo = min(b['low'] for b in h2_bars); h2_hi = max(b['high'] for b in h2_bars)
+            h3_lo = min(b['low'] for b in h3_bars); h3_hi = max(b['high'] for b in h3_bars)
+            completed = h3_hi > h2_hi or h3_lo < h2_lo
+            inside_h2 = h3_lo >= h2_lo and h3_hi <= h2_hi
+            if completed:
+                emit(h0 + 59, T_02C_H3_COMPLETE, T_02C_H3_COMPLETE_A,
+                     ['Cycle expires — next hour is new H1 by fallback', 'Direction flips'],
+                     {'signal_type': 'h3_line_complete', 'cycle_role': 'H3',
+                      'cycle_direction': 'bull' if h3_hi > h2_hi else 'bear', 'h1_hour': h1h, 'h2_hour': h1h + 1})
+                if _is_perfect(bars, h1):
+                    emit(h0 + 60, T_02C_TEXTBOOK, T_02C_TEXTBOOK_A,
+                         ['Moderate — decent but not textbook', 'Low — incomplete cycle'],
+                         {'signal_type': 'setup_textbook_perfect', 'cycle_role': 'H3', 'h1_hour': h1h, 'h2_hour': h1h + 1})
+                h1 = h0  # H3 becomes new H1
+            elif not inside_h2:
+                emit(h0 + 59, T_02C_H3_NOCOMP, T_02C_H3_NOCOMP_A,
+                     ['Line completes — H3 becomes new H1', 'Direction flips'],
+                     {'signal_type': 'h3_no_completion', 'cycle_role': 'H3',
+                      'cycle_direction': 'bull' if h3_hi > h2_hi else 'bear', 'h1_hour': h1h, 'h2_hour': h1h + 1})
+                h1 = None  # fallback: next hour new H1
+            else:
+                h1 = None
+    return prompts, markers
+
+
+def _h1_signature(bars, h0):
+    """Return (question, answer) for H1 line signature at h0 (first 15 min)."""
+    seg = bars[h0:h0 + 15]
+    if len(seg) < 15:
+        return T_02C_H1_SIG, 'No clear line signature — apex more likely'
+    lo_plant = min(range(15), key=lambda i: seg[i]['low'])
+    hi_plant = min(range(15), key=lambda i: seg[i]['high'])
+    if lo_plant <= 1:
+        return T_02C_H1_SIG, 'Perfect Bull — H1 low formed in minute 0-1. Strongest bull. H3 expected higher high.'
+    if hi_plant <= 1:
+        return T_02C_H1_SIG, 'Perfect Bear — H1 high formed in minute 0-1. Strongest bear. H3 expected lower low.'
+    return T_02C_H1_SIG, 'No clear line signature — apex more likely'
+
+
+def _h2_apex(h2_bars):
+    """Detect Q2-break apex in H2: Q2 takes Q1 extreme, Q3 breaks opposite."""
+    if len(h2_bars) < 45:
+        return None
+    q1h = max(b['high'] for b in h2_bars[:15]); q1l = min(b['low'] for b in h2_bars[:15])
+    for k in range(15, 30):
+        if h2_bars[k]['high'] > q1h:
+            for k3 in range(30, 45):
+                if h2_bars[k3]['low'] < h2_bars[k]['low']:
+                    return 'bull'
+            break
+        if h2_bars[k]['low'] < q1l:
+            for k3 in range(30, 45):
+                if h2_bars[k3]['high'] > h2_bars[k]['high']:
+                    return 'bear'
+            break
+    return None
+
+def _is_perfect(bars, h0):
+    """Perfect line: H1 extreme (low for bull / high for bear) planted in minute 0-1."""
+    seg = bars[h0:h0 + 15]
+    if len(seg) < 15:
+        return False
+    lo_plant = min(range(15), key=lambda i: seg[i]['low'])
+    hi_plant = min(range(15), key=lambda i: seg[i]['high'])
+    return lo_plant <= 1 or hi_plant <= 1
+
 def gen_01f(bars, date_str):
     """Prev Hour (01f): prev hour 50% (mid) reclaim in Q2+ and footprint_test (wick zone reject).
 
@@ -1117,6 +1306,8 @@ def main():
         prompts, markers = gen_01g(bars, a.date)
     elif a.concept == '02a':
         prompts, markers = gen_02a(bars, a.date)
+    elif a.concept == '02c':
+        prompts, markers = gen_02c(bars, a.date)
     else:
         sys.exit(f'concept {a.concept} not implemented yet')
     sc = build_scenario(a.concept, a.date, bars, prompts, markers)
